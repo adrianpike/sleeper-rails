@@ -82,13 +82,9 @@ module Scaler
         sleep Scaler.config?(:update_time).to_i
      
         begin
-          if @data != empty_data_set then
-            Scaler.log(:statistics) { 'Uploading statistics to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
-            gather_host_data
-            upload!
-          else
-            Scaler.log(:statistics) { 'Empty data set, not uploading any datas.' }
-          end
+          Scaler.log(:statistics) { 'Uploading statistics to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
+          gather_host_data
+          upload!
           @data = empty_data_set
         rescue Exception => e
           Scaler.log(:error, Logger::ERROR) { e }
