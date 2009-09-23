@@ -7,26 +7,25 @@ rescue MissingSourceFile
 end
 
 module Scaler
-  class Statistics
-    VERBOSE_REQUESTS = false
-    
+  class Statistics    
     def initialize
-      @data = empty_data_set
+		Scaler.log { RUBY_VERSION }
+	  @data = empty_data_set
       @request = {}
       @running = true
-      
-      fire_upload_thread!
+	  @in_child = false
+	  @@thread = fire_upload_thread!
+	  @@thread.abort_on_exception=true
     end
   
-    def empty_data_set
-      {
-        :requests => []
-      }
-    end
+    def empty_data_set; { :requests => [] }; end
   
-    def add_to_this_request(info={})
-      @request.merge!(info)
+	def fire_upload_thread!
+	  Thread.new { upload_thread }
     end
+
+	## Stuff that gets called by the main Rails thread
+    def add_to_this_request(info={}); @request.merge!(info); end
     
     def append_to_this_request_key(key,value)
       @request[key] << value if @request[key]
@@ -41,7 +40,7 @@ module Scaler
       @request[:action] = controller.action_name
       @request[:controller] = controller.controller_name
       
-      if VERBOSE_REQUESTS then
+      if Scaler.config?(:verbose_statistics) then
         @request[:ssl] = controller.ssl?
         @request[:port] = controller.request.port
         @request[:remote_addr] = controller.remote_addr
@@ -49,40 +48,24 @@ module Scaler
       
       @data[:requests] << @request
       @request = {}
+
+	  Scaler.log { 'FINISHED REQUEST:' + @data.to_yaml }
     end
-    
-    def fire_upload_thread!
-      Thread.new { 
-        sleep 5 # initial time before we rock and roll
-        upload_thread 
-      }.abort_on_exception=true
-    end
-    
-    def free_memory
-      if @linux then
-        
-      elsif @mac then
-        @res = {}
-        @meminfo = %x[vm_stat]
-        @meminfo.split("\n").each{|item|
-         @res[item.split(':').first.strip] = item.split(':').last.strip
-        }
-        @pagesize = @res['Mach Virtual Memory Statistics'].match(/of ([0-9]+) bytes/)[1]
-        (@res['Pages free'].to_i * @pagesize.to_i)
-      end
-    end
-    
+
     def gather_host_data
       @data[:load_average] = Scaler::HostStats.load_average
       @data[:free_memory] = Scaler::HostStats.free_memory
     end
     
+	# Thread-related goodies
     def upload_thread
       while @running
         sleep Scaler.config?(:update_time).to_i
      
         begin
-          Scaler.log(:statistics) { 'Uploading statistics to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
+		  Scaler.log { 'UPLOAD THREAD:' + @data.to_yaml }
+	
+          Scaler.log(:statistics) { 'Uploading statistics ('+(@data[:requests].size.to_s rescue 'unknown')+' requests) to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
           gather_host_data
           upload!
           @data = empty_data_set
