@@ -9,22 +9,24 @@ end
 module Scaler
   class Statistics    
     def initialize
-		Scaler.log { RUBY_VERSION }
-	  @data = empty_data_set
+	    @data = empty_data_set
       @request = {}
       @running = true
-	  @in_child = false
-	  @@thread = fire_upload_thread!
-	  @@thread.abort_on_exception=true
+	    @in_child = false
+	  
+	    unless $0 =~ /ApplicationSpawner/ then
+	      @thread = fire_upload_thread!
+	      @thread.abort_on_exception=true
+      end
     end
   
     def empty_data_set; { :requests => [] }; end
   
-	def fire_upload_thread!
-	  Thread.new { upload_thread }
+	  def fire_upload_thread!
+	    Thread.new { upload_thread }
     end
 
-	## Stuff that gets called by the main Rails thread
+	  ## Stuff that gets called by the main Rails thread
     def add_to_this_request(info={}); @request.merge!(info); end
     
     def append_to_this_request_key(key,value)
@@ -48,8 +50,6 @@ module Scaler
       
       @data[:requests] << @request
       @request = {}
-
-	  Scaler.log { 'FINISHED REQUEST:' + @data.to_yaml }
     end
 
     def gather_host_data
@@ -63,8 +63,6 @@ module Scaler
         sleep Scaler.config?(:update_time).to_i
      
         begin
-		  Scaler.log { 'UPLOAD THREAD:' + @data.to_yaml }
-	
           Scaler.log(:statistics) { 'Uploading statistics ('+(@data[:requests].size.to_s rescue 'unknown')+' requests) to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
           gather_host_data
           upload!
@@ -86,4 +84,15 @@ module Scaler
 		end
     end
   end
+end
+
+if defined?(PhusionPassenger)
+    PhusionPassenger.on_event(:starting_worker_process) do |forked|
+        if forked
+            # We're in smart spawning mode.
+            Scaler.statistics.fire_upload_thread!
+        else
+            # We're in conservative spawning mode. We don't need to do anything.
+        end
+    end
 end
