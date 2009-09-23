@@ -30,7 +30,7 @@ module Scaler
 				def explain_string(str); "EXPLAIN #{str}";	end
 
 				def method_missing(method, *args, &block)
-					Scaler.log(Logger::DEBUG) { "[EXPLAINER] #{method} -- #{args.join(":")}" }
+					Scaler.log(:explainer, Logger::DEBUG) { "#{method} -- #{args.join(":")}" }
 
 					## Explain this shit
 					begin
@@ -47,7 +47,7 @@ module Scaler
 						})
 						result.free if result.is_a? Mysql::Result rescue nil
 					rescue ActiveRecord::StatementInvalid => e
-					  Scaler.log { "[EXPLAINER] MySQL Error in explainer: #{e}" }
+					  Scaler.log(:explainer, Logger::ERROR) { "MySQL Error in explainer: #{e}" }
 				    end
 
 						@connection.send(method, *args, &block)

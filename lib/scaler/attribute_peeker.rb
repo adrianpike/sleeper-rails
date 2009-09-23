@@ -19,21 +19,21 @@ module ActiveRecord::AttributeMethods
     
     p @attributes
     
-    Scaler.log(Logger::DEBUG) { "HOLY COW I METHOD MISSINGED #{method_id}" }
+    Scaler.log(nil, Logger::DEBUG) { "HOLY COW I METHOD MISSINGED #{method_id}" }
     
     method_missing_without_logging(method_id, *args, &block)
   end
   
   def write_attribute_with_logging(name, value)
     @gathered_items = [] unless @gathered_items
-	  Scaler.log(Logger::DEBUG) { "HOLY SHIT I #{self.object_id} JUST SET #{name} TO #{value}" }
+	  Scaler.log(nil, Logger::DEBUG) { "HOLY SHIT I #{self.object_id} JUST SET #{name} TO #{value}" }
     write_attribute_without_logging(name,COW)
   end
   
   def read_attribute_with_logging(name)
      @read_items = [] unless @read_items
      @read_items << name
-	   Scaler.log(Logger::DEBUG) { "HOLY COW I #{self.object_id} JUST LOOKED AT #{name}" }
+	   Scaler.log(nil, Logger::DEBUG) { "HOLY COW I #{self.object_id} JUST LOOKED AT #{name}" }
      read_attribute_without_logging(name)
    end
    
@@ -43,6 +43,6 @@ module ActiveRecord::AttributeMethods
    
    def finalize(id)
      p "FINALIZOMATIC"
-     Scaler.log(Logger::DEBUG) { "WHOAAAA RUNNING A FINALIZER" }
+     Scaler.log(nil, Logger::DEBUG) { "WHOAAAA RUNNING A FINALIZER" }
    end
 end

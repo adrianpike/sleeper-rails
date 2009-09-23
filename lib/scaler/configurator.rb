@@ -50,14 +50,14 @@ module Scaler
     def config_thread
       while @running
         begin
-          Scaler.log { '[CONFIG] Updating configuration...' }
+          Scaler.log(:config) { 'Updating configuration...' }
           update_config
 		rescue ActiveSupport::JSON::ParseError
-			Scaler.log { '[CONFIG] Unable to update configuration, we received some bad JSON. (Is Sleeper down?) We\'ll try again in a few minutes.' }
+			Scaler.log(:config) { 'Unable to update configuration, we received some bad JSON. (Is Sleeper down?) We\'ll try again in a few minutes.' }
 			sleep 600 # wait 10 minutes, we'll use default behavior for now
         rescue Exception => e
-          Scaler.log { e }
-          Scaler.log { e.backtrace }
+          Scaler.log(:error, Logger::ERROR) { e }
+          Scaler.log(:error, Logger::ERROR) { e.backtrace }
         end
         sleep Scaler.config?(:config_update_time)
       end

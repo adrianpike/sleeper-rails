@@ -6,49 +6,49 @@ module Scaler
 		log_path = manual_config[:log] if manual_config
 		
 		@logger = Logger.new(log_path)
-		log { "[SCALER] Loading..." }
+		log { "Loading..." }
 
 		@config = Configurator.new(manual_config)
 		@statistics = Statistics.new
 		
 		load_modules
 		
-		log { '[SCALER] Loaded, we\'re running.' }
+		log { 'Loaded, we\'re running.' }
 	end
 
 	# this is all really nasty because there's no uninclude yet
 	# basically if you enable something and then disable it, it's still there hogging up some memory until you restart your passenger or mongrel.
 	def self.unload_modules
-		log { '[SCALER] Disabling benchmarker...' }
+		log { 'Disabling benchmarker...' }
 		Benchmarker.disable!
 
-		log { '[SCALER] Disabling explainer...' }
+		log { 'Disabling explainer...' }
 		Explainer.disable!
 		
-		log { '[SCALER] Disabling profiler...' }
+		log { 'Disabling profiler...' }
 		Profiler.disable!
 	end
 
 	def self.load_modules
 		if config?(:benchmarking) then 
-			log { "[SCALER] Initializing benchmarker..." }
+			log { "Initializing benchmarker..." }
 			ActionController::Base.class_eval { include Benchmarker } unless ActionController::Base.include?(Benchmarker)
 			Benchmarker.enable!
 		end
 
 		if config?(:explaining) and Rails.env!='cucumber' then
-			log { "[SCALER] Initializing explainer..." }
+			log { "Initializing explainer..." }
 			ActiveRecord::Base.class_eval { include Explainer } unless ActiveRecord::Base.include?(Explainer)
 			Explainer.enable!
 		end
 
 		if config?(:profiling) then
 			if defined?(RubyProf) then
-				log { "[SCALER] Initializing profiler..." }
+				log { "Initializing profiler..." }
 				ActionController::Base.class_eval { include Profiler } unless ActionController.Base.include?(Profiler)
 				Profiler.enable!
 			else
-				log { "[SCALER] Can't initialize profiler, try gem install ruby-prof..."}
+				log { "Can't initialize profiler, try gem install ruby-prof..."}
 			end
 		end
 
@@ -65,8 +65,8 @@ module Scaler
 
 	def self.statistics; @statistics; end
 
-	def self.log(level=Logger::INFO, &block)
-		@logger && @logger.add(level, &block)
+	def self.log(category = :scaler, level=Logger::INFO)
+		@logger && @logger.add(level) { "[#{category.to_s.upcase} #{Time.now.to_s :db}] #{yield}" }
 	end
 
 end

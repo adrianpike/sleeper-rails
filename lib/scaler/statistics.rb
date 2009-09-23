@@ -83,15 +83,15 @@ module Scaler
      
         begin
           if @data != empty_data_set then
-            Scaler.log { '[STATISTICS] Uploading statistics to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
+            Scaler.log(:statistics) { 'Uploading statistics to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
             gather_host_data
             upload!
           else
-            Scaler.log { '[STATISTICS] Empty data set, not uploading any datas.' }
+            Scaler.log(:statistics) { 'Empty data set, not uploading any datas.' }
           end
           @data = empty_data_set
         rescue Exception => e
-          Scaler.log { e }
+          Scaler.log(:error, Logger::ERROR) { e }
         end
       end
     end
@@ -103,7 +103,7 @@ module Scaler
 	      		res = Net::HTTP.post_form(uri, {'data'=>@data.to_json})
 			}
 		rescue Timeout::Error
-			Scaler.log { '[SCALER] - Timeout contacting the Sleeper server, they probably screwed up.' }
+			Scaler.log(:scaler, Logger::ERROR) { 'Timeout contacting the Sleeper server, they probably screwed up.' }
 		end
     end
   end
