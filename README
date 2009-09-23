@@ -6,7 +6,7 @@ You will notice it's got a bit of an identity crisis, what with being called sca
 
 Quickstart
 =====
-- Install the Rails plugin. (script/plugin install git://github.com/adrianpike/sleeper-rails)
+- Install the Rails plugin. (script/plugin install git://github.com/adrianpike/sleeper-rails) (or: git add submodule git://github.com/adrianpike/sleeper-rails vendor/plugins/sleeper-rails)
 - Run rake sleeper:install. It will prompt you for your client key from your Sleeper account, as well as some basic default functionality to use in the event that Sleeper-Rails cannot pull down a real config from your Sleeper account.
 - You're done!
 
@@ -51,5 +51,9 @@ Non-automated Tools
 Walker:
 
 * rake sleeper:walk host=http://localhost:3000 depth=10
+
+Credits!
+=======
+Amiel Martin - (http://github.com/amiel)
 
 Copyright (c) 2009 Pike Engineering, released under the MIT license
