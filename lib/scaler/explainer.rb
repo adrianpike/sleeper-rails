@@ -56,6 +56,11 @@ module Scaler
 
 				def explainer_delegate; @explainer; end
 
+				def respond_to_with_original?(method)
+					respond_to_without_original?(method) || @original_connection.respond_to?(method)
+				end
+				alias_method_chain :respond_to?, :original
+
 				def method_missing(method, *args, &block)
 					@original_connection.send(method, *args, &block)
 				end

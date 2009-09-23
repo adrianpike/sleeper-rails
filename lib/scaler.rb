@@ -2,7 +2,7 @@ module Scaler
 	mattr_accessor :logger
 
 	def self.init(manual_config=nil)
-		log_path = RAILS_ROOT + '/log/scaler.log' unless manual_config
+		log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
 		log_path = manual_config[:log] if manual_config
 		
 		@logger = Logger.new(log_path)

@@ -22,7 +22,7 @@ namespace(:sleeper) do
 		
 		@config = {}
 		
-		printf <<EOM
+		printf <<-EOM
 ====================================
   _____ _                           
  / ____| |                          
