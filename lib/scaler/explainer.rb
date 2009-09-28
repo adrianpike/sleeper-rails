@@ -62,7 +62,7 @@ module Scaler
 			alias_method_chain :respond_to?, :original
 
 			def method_missing(method, *args, &block)
-				Scaler.statistics.append_to_this_request_key(:unexplained, { query => args[0] })
+				Scaler.statistics.append_to_this_request_key(:unexplained, { :query => args[0] })
 				@original_connection.send(method, *args, &block)
 			end
 
