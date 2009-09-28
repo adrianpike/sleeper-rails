@@ -8,7 +8,7 @@ module Scaler
       def benchmark_action
 		if @@enabled then
 	        db_sum = @db_rt_before_render+@db_rt_after_render rescue nil #TODO
-	        Scaler.statistics.add_to_this_request({'view_time'=>@view_runtime,'database_time'=>@db_sum})
+	        Scaler.statistics.add_to_this_request({'view_time'=>@view_runtime,'database_time'=>db_sum})
 		end
       end
     
