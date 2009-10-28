@@ -52,11 +52,11 @@ module Scaler
 			end
 		end
 
-		#if config?(:peeking) then
-		#	log { "[SCALER] Initializing attribute peeker..." }
-		#	ActiveRecord::AttributeMethods.class_eval { include AttributePeeker } unless ActiveRecord::AttributeMethods.include?(AttributePeeker)
-		#	AttributePeeker.enable!
-		#end
+		if config?(:peeking) then
+			log { "Initializing attribute peeker..." }
+			ActiveRecord::AttributeMethods.class_eval { include AttributePeeker } unless ActiveRecord::AttributeMethods.include?(AttributePeeker)
+			AttributePeeker.enable!
+		end
 	end
 
 	def self.config?(value)
