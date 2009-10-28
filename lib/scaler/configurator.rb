@@ -29,10 +29,10 @@ module Scaler
 		@config = default_configuration
       	@config.merge!(YAML::load(File.open("#{RAILS_ROOT}/config/sleeper.yml"))) rescue nil
       
-      	Thread.new { 
-        	sleep 5 # initial time before we rock and roll
-        	config_thread
-      	}
+     	Thread.new { 
+            	sleep 5 # initial time before we rock and roll
+            	config_thread
+          	}
 		end
     end
     

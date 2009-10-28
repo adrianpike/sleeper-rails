@@ -19,6 +19,7 @@ module Scaler
 				@explainer = ExplainerDelegate.new(connection)
 			end
 
+			# things to investigate here: select_value
 			delegate :delete, :select, :select_all, :find, :to => :explainer_delegate
 
 			# any data loader methods get dumped into here
@@ -62,7 +63,9 @@ module Scaler
 			alias_method_chain :respond_to?, :original
 
 			def method_missing(method, *args, &block)
-				Scaler.statistics.append_to_this_request_key(:unexplained, { :query => args[0] })
+				if method == :update or method == :insert then
+					Scaler.statistics.append_to_this_request_key(:unexplained, { :query => args[0] })
+				end
 				@original_connection.send(method, *args, &block)
 			end
 
