@@ -54,7 +54,7 @@ module Scaler
 
 		if config?(:peeking) then
 			log { "Initializing attribute peeker..." }
-			ActiveRecord::AttributeMethods.class_eval { include AttributePeeker } unless ActiveRecord::AttributeMethods.include?(AttributePeeker)
+			ActiveRecord::Base.class_eval { include AttributePeeker } unless ActiveRecord::Base.include?(AttributePeeker)
 			AttributePeeker.enable!
 		end
 	end
