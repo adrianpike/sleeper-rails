@@ -54,8 +54,7 @@ module ActiveRecord::AttributeMethods
 	end
 
   def read_attribute_with_logging(name)
-     Scaler.log(:peeker, Logger::DEBUG) { "HOLY COW I #{self.object_id} JUST LOOKED AT #{name}" }
-		 Scaler.statistics.add_to_this_request(:read_attributes => { :object => self.object_id, :attribute => name })
+     Scaler.statistics.add_to_this_request(:read_attributes => { :object => self.object_id, :attribute => name })
    end
 
 end
