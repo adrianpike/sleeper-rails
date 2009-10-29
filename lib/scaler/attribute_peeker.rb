@@ -10,51 +10,52 @@ module Scaler
 	def self.enable!; @@enabled=true; end
 	def self.disable!; @@enabled=false; end
     
-    # include this to ActiveRecord::AttributeMethods
-    def self.included(base)
-      Scaler.log(:peeker, Logger::DEBUG) { "EXTENDING AR::Base" }
-			
-			#base.alias_method_chain :define_attribute_methods, :logging
-			ActiveRecord::AttributeMethods::ClassMethods.alias_method_chain :define_read_method, :logging
-			
-			#ActiveRecord::AttributeMethods.class_eval { alias_method_chain :method_missing, :logging }
-			
-      #base.alias_method_chain :read_attribute, :logging
-			
-    end
+  # include this to ActiveRecord::Base
+  def self.included(base)
+    Scaler.log(:peeker, Logger::DEBUG) { "EXTENDING AR::Base" }
+		
+		ActiveRecord::AttributeMethods::ClassMethods.alias_method_chain :define_read_method, :logging
+		
+		ActiveRecord::Base.class_eval("
+				class << self
+					alias_method_chain :find_by_sql, :logging
+				end
+			")
+  end
     
   end
+end
+
+module ActiveRecord
+	class Base
+		def self.find_by_sql_with_logging(record)
+			results = find_by_sql_without_logging(record)
+			results.each{|r|
+				attributes = r.instance_variable_get("@attributes").collect{|k,v| k }
+				Scaler.statistics.add_to_this_request(:loaded_attributes => { :object => r.object_id, :attributes => attributes })
+				Scaler.statistics.add_to_this_request(:activerecord_load => { :object => r.object_id, :location => caller[0..Scaler.config?(:trace_depth)] })
+			}
+			results
+		end
+	end
 end
 
 module ActiveRecord::AttributeMethods
 	module ClassMethods
 		def define_read_method_with_logging(symbol, attr_name, column)
-		  Scaler.log(:peeker, Logger::DEBUG) { "HOLY COW I #{self.object_id} JUST DEFINED A READ METHOD FOR #{symbol}" }
-
 			define_read_method_without_logging(symbol, attr_name, column)
-			
-			logging_code = "def #{attr_name}_with_logging; p 'SKEET SKEET SKEET SKEET'; end"
+
+			logging_code = "def #{attr_name}_with_logging; read_attribute_with_logging('#{attr_name}'); #{attr_name}_without_logging; end"
 			chain_code = "alias_method_chain :#{attr_name},:logging"
 			
 			class_eval(logging_code)
 			class_eval(chain_code)
 	 end
-
 	end
-  
+
   def read_attribute_with_logging(name)
-     @read_items = [] unless @read_items
-     @read_items << name
-	   Scaler.log(:peeker, Logger::DEBUG) { "HOLY COW I #{self.object_id} JUST LOOKED AT #{name}" }
-     define_attribute_methods_without_logging(name)
+     Scaler.log(:peeker, Logger::DEBUG) { "HOLY COW I #{self.object_id} JUST LOOKED AT #{name}" }
+		 Scaler.statistics.add_to_this_request(:read_attributes => { :object => self.object_id, :attribute => name })
    end
 
-   def gather_read_items
-     Scaler.statistics.add_to_this_request(:attribute_peeker => { :peekedattributes => @read_items })
-   end
-   
-   def finalize(id)
-     p "FINALIZOMATIC"
-     Scaler.log(:peeker, Logger::DEBUG) { "WHOAAAA RUNNING A FINALIZER" }
-   end
 end
