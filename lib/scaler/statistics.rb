@@ -63,6 +63,7 @@ module Scaler
     def gather_host_data
       @data[:load_average] = Scaler::HostStats.load_average
       @data[:free_memory] = Scaler::HostStats.free_memory
+			@data[:version] = '0.1'
     end
     
 	# Thread-related goodies
