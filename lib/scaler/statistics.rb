@@ -28,7 +28,15 @@ module Scaler
 
 	  ## Stuff that gets called by the main Rails thread
     def add_to_this_request(info={}); @request.merge!(info); end
-    
+
+		def request_key(key)
+			@request[key]
+		end
+		
+		def set_request_key(key,val)
+			@request[key] = val
+		end
+
     def append_to_this_request_key(key,value)
       @request[key] << value if @request[key]
       @request[key] = [value] unless @request[key]

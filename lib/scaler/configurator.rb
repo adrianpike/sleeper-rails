@@ -12,11 +12,12 @@ module Scaler
         :benchmarking => true,
         :explaining => true,
         :traces => false,
+				:trace_depth => 5,
         :profiling => false,
         :peeking => false,
-		:upload_timeout => 30,
-		:compression => true,
-		:verbose_statistics => false
+				:upload_timeout => 30,
+				:compression => true,
+				:verbose_statistics => false
       }
     end
     
