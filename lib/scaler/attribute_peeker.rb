@@ -32,8 +32,15 @@ module ActiveRecord
 			results = find_by_sql_without_logging(record)
 			results.each{|r|
 				attributes = r.instance_variable_get("@attributes").collect{|k,v| k }
-				Scaler.statistics.add_to_this_request(:loaded_attributes => { :object => r.object_id, :attributes => attributes })
-				Scaler.statistics.add_to_this_request(:activerecord_load => { :object => r.object_id, :location => caller[0..Scaler.config?(:trace_depth)] })
+				
+				# TODO: TRANSACT
+				
+				loads = Scaler.statistics.request_key(:activerecord_loads) || {}
+				loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => caller[5..(Scaler.config?(:trace_depth)+5)] }
+				Scaler.statistics.set_request_key(:activerecord_loads,loads)
+				
+				# TODO: END TRANSACT
+			
 			}
 			results
 		end
@@ -54,7 +61,21 @@ module ActiveRecord::AttributeMethods
 	end
 
   def read_attribute_with_logging(name)
-     Scaler.statistics.add_to_this_request(:read_attributes => { :object => self.object_id, :attribute => name })
+	
+				# TODO: TRANSACT
+					
+		 loads = Scaler.statistics.request_key(:activerecord_loads) || {}
+		
+     if loads[self.object_id] then
+			 loads[self.object_id][:read_attributes] = [name] unless loads[self.object_id][:read_attributes]
+			 loads[self.object_id][:read_attributes] << name if loads[self.object_id][:read_attributes]
+			 loads[self.object_id][:read_attributes].uniq!
+			 Scaler.statistics.set_request_key(:activerecord_loads,loads)
+		 end
+		
+		 
+		# TODO: END TRANSACT
+		
    end
 
 end
