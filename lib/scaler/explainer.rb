@@ -27,30 +27,32 @@ module Scaler
 				def initialize(connection)
 					@connection = connection
 				end
+				
+				def explainable_adapter?(class_name)
+					class_name != "ActiveRecord::ConnectionAdapters::SQLite3Adapter"
+				end
 
 				def explain_string(str); "EXPLAIN #{str}";	end
 
 				def method_missing(method, *args, &block)
-					Scaler.log(:explainer, Logger::DEBUG) { "#{method} -- #{args.join(":")}" }
-
-					## Explain this shit
-					begin
-						result = @connection.execute explain_string(args[0])
-						explanation = ''
-						explanation = result.fetch_hash if result.is_a? Mysql::Result rescue nil
-						explanation = result if result.is_a? Array
-						Scaler.statistics.append_to_this_request_key(:explained, 
-						{
-							:query => args[0],
-							:connection_adapter=> @connection.class.to_s, 
-							:explanation => explanation#,
-							#						  :trace => (Scaler.config?(:traces) ? caller : '')
-							})
-						result.free if result.is_a? Mysql::Result rescue nil
-					rescue ActiveRecord::StatementInvalid => e
-						Scaler.log(:explainer, Logger::ERROR) { "MySQL Error in explainer: #{e}" }
+					if explainable_adapter?(@connection.class.to_s) then
+						begin
+							result = @connection.execute explain_string(args[0])
+							explanation = ''
+							explanation = result.fetch_hash if result.is_a? Mysql::Result rescue nil
+							explanation = result if result.is_a? Array
+							Scaler.statistics.append_to_this_request_key(:explained, 
+							{
+								:query => args[0],
+								:connection_adapter=> @connection.class.to_s,
+								:explanation => explanation
+								})
+							result.free if result.is_a? Mysql::Result rescue nil
+						rescue ActiveRecord::StatementInvalid => e
+							Scaler.log(:explainer, Logger::ERROR) { "MySQL Error in explainer: #{e}" }
+						end
 					end
-
+				
 					@connection.send(method, *args, &block)
 				end
 			end

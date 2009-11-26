@@ -1,19 +1,23 @@
 module Scaler
+	VERSION = '0.1'
+	
 	mattr_accessor :logger
 
 	def self.init(manual_config=nil)
-		log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
-		log_path = manual_config[:log] if manual_config
+		if in_webapp? then
+			log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
+			log_path = manual_config[:log] if manual_config
 		
-		@logger = Logger.new(log_path)
-		log { "Loading..." }
+			@logger = Logger.new(log_path)
+			log { "Loading..." }
 
-		@config = Configurator.new(manual_config)
-		@statistics = Statistics.new
+			@config = Configurator.new(manual_config)
+			@statistics = Statistics.new
 		
-		load_modules
+			load_modules
 		
-		log { 'Loaded, we\'re running.' }
+			log { 'Loaded, we\'re running.' }
+		end
 	end
 
 	# this is all really nasty because there's no uninclude yet
@@ -67,6 +71,13 @@ module Scaler
 
 	def self.log(category = :scaler, level=Logger::INFO)
 		@logger && @logger.add(level) { "[#{category.to_s.upcase} #{Time.now.to_s :db}] #{yield}" }
+	end
+
+	def self.in_webapp?
+		return true if defined? Mongrel::HttpServer
+		return true if defined? Passenger::AbstractServer
+
+		false
 	end
 
 end
