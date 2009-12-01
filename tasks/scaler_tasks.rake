@@ -84,7 +84,8 @@ namespace(:sleeper) do
 Welcome to sleeper! Let's get you up and running as quickly as possible!\n
 EOM
 
-	task :test
+	 Rake::Task["sleeper:test"].reenable
+   Rake::Task["sleeper:test"].invoke
 
 	if (File.exists?(RAILS_ROOT+'/config/sleeper.yml')) then
 		printf "Sleeper is already configured.\n"
