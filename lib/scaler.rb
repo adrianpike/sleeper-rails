@@ -1,12 +1,16 @@
 module Scaler
-	VERSION = '0.1'
+	VERSION = '0.2'
 	
 	mattr_accessor :logger
 
 	def self.init(manual_config=nil)
+		ENV['SLEEPER-VERSION'] = VERSION
+		
 		if in_webapp? then
 			log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
 			log_path = manual_config[:log] if manual_config
+		
+		  ENV['SLEEPER-LOG'] = log_path
 		
 			@logger = Logger.new(log_path)
 			log { "Loading..." }

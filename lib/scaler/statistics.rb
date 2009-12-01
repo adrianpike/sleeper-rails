@@ -16,6 +16,7 @@ module Scaler
 	  
 	    unless $0 =~ /ApplicationSpawner/ then
 	      @thread = fire_upload_thread!
+				ENV['SLEEPER-UPLOAD-THREAD'] = @thread.inspect
 	      @thread.abort_on_exception=true
       end
     end
