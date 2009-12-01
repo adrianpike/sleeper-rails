@@ -3,6 +3,10 @@
 #   # Task goes here
 # end
 
+def parents(obj)
+  ( (obj.superclass ? parents(obj.superclass) : []) << obj). reverse
+end
+
 
 namespace(:sleeper) do
 	
@@ -15,6 +19,50 @@ namespace(:sleeper) do
 	desc('Notify sleeper that we\'ve just deployed.')
 	task :deploy do
 		
+	end
+	
+	desc('Sanity check your app to make sure it\'s a sane environment, DB, and plugins.')
+	task :test => :environment do
+		# begin sanity checks
+		printf "First we're going to check your app to make sure it's sane and happy and meets the requirements for Sleeper.\n"
+		printf "Database backend:\t"
+		if (File.exists?(RAILS_ROOT+'/config/database.yml')) then
+			# check for MySQL usage at least somewhere :)
+			
+			printf "[OK!]\n"
+		else
+			printf "[FAIL!]\nLooks like you don't have any database configured! This might be totally fine, but Sleeper currently only collects explanation data with a MySQL backend, so keep this in mind if you're planning on using PostgreSQL or another DB backend.\n"
+		end
+
+
+		printf "ORM:\t\t\t"
+		# hat tip: http://blog.matt-darby.com/posts/692-iterating-over-all-models-in-rails
+		# TODO: nested models
+		# TODO: blacklist instead of whitelist
+		all_models = Dir.glob( File.join( RAILS_ROOT, 'app', 'models', '*.rb') ).map{|path| path[/.+\/(.+).rb/,1] }
+		failures = []
+		we_ok = all_models.collect{|m| 
+			pts = parents(m.classify.constantize)
+			val = (pts.include?(ActiveRecord::Base) or pts.include?(Authlogic::Session::Base) or pts.include?(ActionMailer::Base))
+			failures << m.classify.constantize unless val
+			val
+		 }.inject{|memo,obj| memo && obj }
+		
+		if we_ok then
+				printf "[OK!]\n"
+			else
+				printf "[FAIL!]\n - Looks like you've got some non-activerecord models (#{failures.join(',')}). This may be fine, or this may be indicative of future problems you'll run into!\n"
+			end
+
+		# check for Rails and not merb
+		print "Application Framework:\t"
+		if defined?(Rails) then
+			printf "[OK!]\n"
+		else
+			printf "[FAIL!]\nLooks like you're not using Rails - this may be a nono!\n"
+		end
+			
+		printf "Plugin Conflicts:\t[OK!]\n" # TODO as we discover plugin issues :)
 	end
 	
 	desc('Install and configure a basic Sleeper installation.')
@@ -35,6 +83,8 @@ namespace(:sleeper) do
 ====================================
 Welcome to sleeper! Let's get you up and running as quickly as possible!\n
 EOM
+
+	task :test
 
 	if (File.exists?(RAILS_ROOT+'/config/sleeper.yml')) then
 		printf "Sleeper is already configured.\n"
