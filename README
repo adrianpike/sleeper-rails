@@ -5,8 +5,14 @@ You will notice it's got a bit of an identity crisis, what with being called sca
 
 Quickstart
 =====
-- Install the Rails plugin. (script/plugin install git://github.com/adrianpike/sleeper-rails) (or: git add submodule git://github.com/adrianpike/sleeper-rails vendor/plugins/sleeper-rails)
-- Run rake sleeper:install. It will prompt you for your client key from your Sleeper account, as well as some basic default functionality to use in the event that Sleeper-Rails cannot pull down a real config from your Sleeper account. It will also check for a sane environment.
+- Install the Rails plugin. 
+	
+	script/plugin install git://github.com/adrianpike/sleeper-rails 
+			-or- 
+	git submodule add git://github.com/adrianpike/sleeper-rails vendor/plugins/sleeper-rails
+	
+- Run rake sleeper:install. It will prompt you for your client key from your Sleeper account, as well as some basic default functionality to use in the event that sleeper-rails cannot pull down a real config from your Sleeper account. It will also check for a sane environment.
+
 - You're done!
 
 Requirements
@@ -25,8 +31,9 @@ TODO
 - Authenticate & encrypt updates.
 - Better stack trace collection.
 - Heroku support.
+- Unicorn support.
 - PostgreSQL support.
-- Better handling of internal exceptions.
+- Better handling of internal exceptions, rather than barfing all over the poor user's app.
 
 Basic Sleeper-Rails Architecture
 =====

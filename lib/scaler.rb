@@ -76,6 +76,7 @@ module Scaler
 	def self.in_webapp?
 		return true if defined? Mongrel::HttpServer
 		return true if defined? Passenger::AbstractServer
+		return true if ENV['HEROKU_ENV'] or ENV['HEROKU_SLUG']
 
 		false
 	end
