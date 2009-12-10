@@ -12,7 +12,7 @@ module Scaler
         :benchmarking => true,
         :explaining => true,
         :traces => false,
-				:trace_depth => 5,
+				:trace_depth => 20,
         :profiling => false,
         :peeking => false,
 				:upload_timeout => 30,
@@ -24,17 +24,19 @@ module Scaler
     def initialize(manual_config=nil)
       @running = true
       
-	 if manual_config
-		  @config = default_configuration.merge(manual_config)
+	 		if manual_config
+		  	@config = default_configuration.merge(manual_config)
       else
-		@config = default_configuration
-      	@config.merge!(YAML::load(File.open("#{RAILS_ROOT}/config/sleeper.yml"))) rescue nil
-      
-     	ENV['SLEEPER-CONFIG-THREAD'] = Thread.new { 
+				@config = default_configuration
+				output = ERB.new(File.open("#{RAILS_ROOT}/config/sleeper.yml").read).result
+				@config.merge!(YAML::load(output)) rescue nil
+
+     		ENV['SLEEPER-CONFIG-THREAD'] = Thread.new { 
             	sleep 5 # initial time before we rock and roll
             	config_thread
           	}.inspect
-		end
+				
+				end
     end
     
     def update_config

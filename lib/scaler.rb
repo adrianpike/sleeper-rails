@@ -10,7 +10,7 @@ module Scaler
 			log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
 			log_path = manual_config[:log] if manual_config
 		
-		  ENV['SLEEPER-LOG'] = log_path
+		  ENV['SLEEPER-LOG'] = log_path.to_s
 		
 			@logger = Logger.new(log_path)
 			log { "Loading..." }
@@ -81,6 +81,7 @@ module Scaler
 		return true if defined? Mongrel::HttpServer
 		return true if defined? Passenger::AbstractServer
 		return true if ENV['HEROKU_ENV'] or ENV['HEROKU_SLUG']
+		return true if ENV['FAKE_WEBAPP']
 
 		false
 	end

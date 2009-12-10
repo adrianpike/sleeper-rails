@@ -1,6 +1,8 @@
 require 'test_helper'
 require 'shoulda'
 
+ENV['FAKE_WEBAPP'] = '1'
+
 class PostedSomeStuff < Exception; end
 
 module Net

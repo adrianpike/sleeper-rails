@@ -51,6 +51,8 @@ module Scaler
 						rescue ActiveRecord::StatementInvalid => e
 							Scaler.log(:explainer, Logger::ERROR) { "MySQL Error in explainer: #{e}" }
 						end
+					else
+						Scaler.statistics.append_to_this_request_key(:unexplained, { :query => args[0]})
 					end
 				
 					@connection.send(method, *args, &block)
