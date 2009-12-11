@@ -1,10 +1,12 @@
 Sleeper-Rails
 ======
-This is the Rails plugin for Sleeper - (http://sleeperapp.com). It's currently undergoing *heavy* development. It's safe for most all production sites.
+This is the Rails plugin for Sleeper - (http://sleeperapp.com). It's currently undergoing *heavy* development. It's safe for most production sites.
 You will notice it's got a bit of an identity crisis, what with being called scaler some places, and sleeper others, and sleeper-rails in still more. Mea culpa. The official name moving forward is sleeper-rails.
 
 Quickstart
 =====
+- Sign up for a Sleeper account at http://sleeperapp.com
+
 - Install the Rails plugin. 
 	
 	script/plugin install git://github.com/adrianpike/sleeper-rails 
@@ -17,22 +19,20 @@ Quickstart
 
 Requirements
 =====
-- MySQL for explaining. Other backends work fine.
-- Passenger or Mongrel for server stack.
+- MySQL or PostgreSQL for explaining. Other backends work fine, but won't generate explanations.
+- Passenger, Mongrel, or Heroku for server stack.
 
 Known Issues
 =====
-- Some exceptions don't bubble up to the developers' app.
-- Sleeper-Rails & Masochism collide horrendously.
+- Heroku does not support git submodules.
+- Sleeper-Rails & other patches onto ActiveRecord connections can collide.
 - Lots of room for refactoring & optimization.
 
 TODO
 =====
 - Authenticate & encrypt updates.
 - Better stack trace collection.
-- Heroku support.
 - Unicorn support.
-- PostgreSQL support.
 - Better handling of internal exceptions, rather than barfing all over the poor user's app.
 
 Basic Sleeper-Rails Architecture

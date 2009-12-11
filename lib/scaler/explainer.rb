@@ -39,8 +39,9 @@ module Scaler
 						begin
 							result = @connection.execute explain_string(args[0])
 							explanation = ''
-							explanation = result.fetch_hash if result.is_a? Mysql::Result rescue nil
 							explanation = result if result.is_a? Array
+							explanation = result.fetch_hash if result.is_a? Mysql::Result rescue nil
+							explanation = result.result if result.is_a? PGresult rescue nil
 							Scaler.statistics.append_to_this_request_key(:explained, 
 							{
 								:query => args[0],

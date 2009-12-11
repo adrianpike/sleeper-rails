@@ -1,5 +1,5 @@
 module Scaler
-	VERSION = '0.2'
+	VERSION = '0.21'
 	
 	mattr_accessor :logger
 
