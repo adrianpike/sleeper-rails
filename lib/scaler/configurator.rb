@@ -12,7 +12,7 @@ module Scaler
         :benchmarking => true,
         :explaining => true,
         :traces => false,
-				:trace_depth => 20,
+				:trace_depth => 10,
         :profiling => false,
         :peeking => false,
 				:upload_timeout => 30,

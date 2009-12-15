@@ -42,10 +42,14 @@ namespace(:sleeper) do
 		all_models = Dir.glob( File.join( RAILS_ROOT, 'app', 'models', '*.rb') ).map{|path| path[/.+\/(.+).rb/,1] }
 		failures = []
 		we_ok = all_models.collect{|m| 
-			pts = parents(m.classify.constantize)
-			val = (pts.include?(ActiveRecord::Base) or pts.include?(Authlogic::Session::Base) or pts.include?(ActionMailer::Base))
-			failures << m.classify.constantize unless val
-			val
+			begin
+				pts = parents(m.classify.constantize).collect{|parent| parent.to_s }
+				val = (pts.include?('ActiveRecord::Base') or pts.include?('Authlogic::Session::Base') or pts.include?('ActionMailer::Base'))
+				failures << m.classify.constantize unless val
+				val
+			rescue Exception => e
+				failures << m.to_s
+			end
 		 }.inject{|memo,obj| memo && obj }
 		
 		if we_ok then

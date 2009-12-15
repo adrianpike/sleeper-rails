@@ -23,7 +23,13 @@ module Scaler
 			log { 'Loaded, we\'re running.' }
 		end
 	end
-
+	
+	def self.sanitize_callback(callback)
+		callback.collect {|line|
+			(line.match(/\/activesupport/) or line.match(/\/activerecord/) or line.match(/\/actionpack/) or line.match(/\/sleeper-rails/)) ? nil : line
+			}.compact
+	end
+		
 	# this is all really nasty because there's no uninclude yet
 	# basically if you enable something and then disable it, it's still there hogging up some memory until you restart your passenger or mongrel.
 	def self.unload_modules

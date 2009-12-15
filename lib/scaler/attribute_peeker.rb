@@ -36,7 +36,7 @@ module ActiveRecord
 				# TODO: TRANSACT
 				
 				loads = Scaler.statistics.request_key(:activerecord_loads) || {}
-				loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => caller[0..(Scaler.config?(:trace_depth))] }
+				loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => Scaler.sanitize_callback(caller)[0..(Scaler.config?(:trace_depth))] }
 				Scaler.statistics.set_request_key(:activerecord_loads,loads)
 				
 				# TODO: END TRANSACT
