@@ -86,8 +86,11 @@ module Scaler
 	def self.in_webapp?
 		return true if defined? Mongrel::HttpServer
 		return true if defined? Passenger::AbstractServer
-		return true if ENV['HEROKU_ENV'] or ENV['HEROKU_SLUG']
-		return true if ENV['FAKE_WEBAPP']
+		return true if ENV['HEROKU_ENV'] or ENV['HEROKU_SLUG'] # Theoretically should get picked up by the Thin finder, but we'll probably want to do extra magic for Heroku.
+		return true if defined? FCGI
+		return true if defined? Thin::Server # TODO: further testing
+
+		return true if ENV['FAKE_WEBAPP'] # For testing :)
 
 		false
 	end
