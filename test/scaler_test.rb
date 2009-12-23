@@ -5,10 +5,15 @@ ENV['FAKE_WEBAPP'] = '1'
 
 class PostedSomeStuff < Exception; end
 
+$POSTED_DATA = []
+
 module Net
 	class HTTP
 		def self.post_form(url, content)
-			content # pong
+			$POSTED_DATA << content
+			
+			
+			Net::HTTPResponse.new("fake_http","200",'hooray!')
 		end
 	end
 end
@@ -32,6 +37,7 @@ class ScalerTest < Test::Unit::TestCase
 	        	:traces => false,
 	        	:profiling => false,
 	        	:peeking => false,
+						:max_update_size => 500
 	      	}
 			)
 			
@@ -50,8 +56,12 @@ class ScalerTest < Test::Unit::TestCase
 			Scaler.statistics.add_to_this_request({:foo=>'bar'})
 			Scaler.statistics.finish_request!(@controller)
 			Scaler.statistics.gather_host_data
-			posted_data = Scaler.statistics.upload!
-			results = ActiveSupport::JSON.decode(posted_data['data'])
+			
+			$POSTED_DATA = []
+			
+			Scaler.statistics.upload!
+				
+			results = ActiveSupport::JSON.decode($POSTED_DATA.last['data'])
 			
 			# has sane load averages
 			assert results['load_average'].match(/^(\d+.\d+\w?)+/)
@@ -65,6 +75,34 @@ class ScalerTest < Test::Unit::TestCase
 			
 			# has sane some free_memory infos
 			assert results['free_memory']
+		end
+		
+		should 'chunk up huge posts' do
+			10.times do |i|
+				Scaler.statistics.add_to_this_request({:foo=>'bar', :zed=>i.to_s})
+				Scaler.statistics.finish_request!(@controller)
+			end
+			
+			Scaler.statistics.gather_host_data
+			
+			$POSTED_DATA = []
+			
+			Scaler.statistics.upload!
+			
+			assert_equal $POSTED_DATA.length, 9
+			
+			first_posted = ActiveSupport::JSON.decode($POSTED_DATA.first['data'])
+			last_posted = ActiveSupport::JSON.decode($POSTED_DATA.last['data'])
+			
+			
+			assert first_posted['load_average'].match(/^(\d+.\d+\w?)+/)
+			
+			# first and last have same host data
+			assert_equal first_posted['free_memory'], last_posted['free_memory']
+			assert_equal first_posted['load_average'], last_posted['load_average']
+			
+			# first and last have different zed data
+			assert_not_equal first_posted['requests'].first['zed'], last_posted['requests'].first['zed']
 		end
 		
 		should 'gracefully handle timeouts' do

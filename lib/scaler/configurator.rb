@@ -1,6 +1,7 @@
 module Scaler
   class Configurator
-    
+
+    # Most of this will be overwritten by config_thread
     def default_configuration
       {
         :client_key => nil,
@@ -13,11 +14,12 @@ module Scaler
         :explaining => true,
         :traces => false,
 				:trace_depth => 10,
+				:max_update_size => 2000000, # in bytes. change this and your uploads may not work.
         :profiling => false,
         :peeking => false,
-				:upload_timeout => 30,
-				:compression => true,
-				:verbose_statistics => false
+				:upload_timeout => 60, # Could take a while to stuff 2MB upstream ;)
+				:compression => true, # TODO
+				:verbose_statistics => false # TODO
       }
     end
     

@@ -83,16 +83,67 @@ module Scaler
       end
     end
   
-    def upload!
-		begin
-			Timeout::timeout(Scaler.config?(:upload_timeout)) {
-	      		uri = URI.parse(Scaler.config?(:sleeper_host)+'/apps/'+Scaler.config?(:client_key))
-	      		res = Net::HTTP.post_form(uri, {'data'=>@data.to_json})
-			}
-		rescue Timeout::Error
-			Scaler.log(:scaler, Logger::ERROR) { 'Timeout contacting the Sleeper server, they probably screwed up.' }
+		# hat tip: http://snippets.dzone.com/posts/show/3486
+		def chunk_array(array, pieces=2)
+		  len = array.length;
+		  mid = (len/pieces)
+		  chunks = []
+		  start = 0
+		  1.upto(pieces) do |i|
+		    last = start+mid
+		    last = last-1 unless len%pieces >= i
+		    chunks << array[start..last] || []
+		    start = last+1
+		  end
+		  chunks
 		end
-    end
+
+		def json_data_chunks
+			jsoned = @data.to_json
+			if jsoned.size>Scaler.config?(:max_update_size)
+				stub_request = @data.dup
+				stub_request.delete(:requests)
+				
+				stub_size = stub_request.to_json.size + 15 # overhead for key & brackets
+				overhead_size = jsoned.size - stub_size
+				
+				num_chunks = (((jsoned.size.to_f/Scaler.config?(:max_update_size).to_f).ceil*overhead_size.to_f + stub_size.to_f) / Scaler.config?(:max_update_size).to_f).ceil
+				
+				requests = chunk_array(@data[:requests], num_chunks)
+				requests.collect {|r| 
+					new_req = stub_request.dup
+					new_req[:requests] = r
+					new_req
+				}.collect{|r| r.to_json }
+			else
+				[jsoned]
+			end
+		end
+
+    def upload!
+			json_data_chunks.each{|data|
+				begin
+					Timeout::timeout(Scaler.config?(:upload_timeout)) {
+						Scaler.log(:statistics) { ' - Uploading chunk of ' + data.size.to_s + ' bytes.' }
+	      		uri = URI.parse(Scaler.config?(:sleeper_host)+'/apps/'+Scaler.config?(:client_key))
+	      		res = Net::HTTP.post_form(uri, {'data'=>data})
+						case res.code
+							when '200'
+								Scaler.log(:statistics) { '[ACCEPTED]' }
+							when '401'
+								Scaler.log(:statistics) { '[REJECTED] - Sleeper doesn\'t recognize your key!' }
+							when '413'
+								Scaler.log(:statistics) { '[REJECTED] - This was too big a submission to Sleeper.' }
+							else
+								Scaler.log(:statistics) { '[REJECTED] - There was a Sleeper server error:'+res.code.to_s }
+						end
+					}
+				rescue Timeout::Error
+					Scaler.log(:scaler, Logger::ERROR) { 'Timeout contacting the Sleeper server, they probably screwed up.' }
+				end
+    	}
+			Scaler.log(:statistics) { 'Statistics batch complete.' }
+		end
   end
 end
 

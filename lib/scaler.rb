@@ -1,5 +1,5 @@
 module Scaler
-	VERSION = '0.21'
+	VERSION = '0.3'
 	
 	mattr_accessor :logger
 
@@ -31,7 +31,7 @@ module Scaler
 	def self.sanitize_callback(callback)
 		callback.collect {|line|
 			(line.match(/\/activesupport/) or line.match(/\/activerecord/) or line.match(/\/actionpack/) or line.match(/\/sleeper-rails/)) ? nil : line
-			}.compact
+		}.compact
 	end
 		
 	# this is all really nasty because there's no uninclude yet
