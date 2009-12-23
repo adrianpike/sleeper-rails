@@ -6,13 +6,14 @@ module Scaler
 	def self.init(manual_config=nil)
 		ENV['SLEEPER-VERSION'] = VERSION
 		
+		log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
+		log_path = manual_config[:log] if manual_config
+		
+		 ENV['SLEEPER-LOG'] = log_path.to_s
+		
+		@logger = Logger.new(log_path)
+		
 		if in_webapp? then
-			log_path = RAILS_ROOT + '/log/sleeper.log' unless manual_config
-			log_path = manual_config[:log] if manual_config
-		
-		  ENV['SLEEPER-LOG'] = log_path.to_s
-		
-			@logger = Logger.new(log_path)
 			log { "Loading..." }
 
 			@config = Configurator.new(manual_config)
@@ -21,6 +22,8 @@ module Scaler
 			load_modules
 		
 			log { 'Loaded, we\'re running.' }
+		else
+			log { 'Not in a recognized framework, Sleeper is disabled.' }
 		end
 	end
 	
