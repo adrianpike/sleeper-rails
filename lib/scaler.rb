@@ -24,6 +24,7 @@ module Scaler
 			log { 'Loaded, we\'re running.' }
 		else
 			log { 'Not in a recognized framework, Sleeper is disabled.' }
+			log { ENV.to_hash.to_yaml } if ENV['SLEEPER_DEBUG']=='true'
 		end
 	end
 	
