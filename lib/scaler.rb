@@ -1,3 +1,13 @@
+begin
+	require 'ruby-prof'
+rescue MissingSourceFile
+	begin
+		require 'profiler'
+	rescue MissingSourceFile
+	end
+end
+
+
 module Scaler
 	VERSION = '0.3'
 	
@@ -24,7 +34,7 @@ module Scaler
 			log { 'Loaded, we\'re running.' }
 		else
 			log { 'Not in a recognized framework, Sleeper is disabled.' }
-			log { Module.constants.to_json }# if ENV['SLEEPER_DEBUG']=='true'
+			log { Module.constants.to_json } if ENV['SLEEPER_DEBUG']=='true'
 			log { ENV.to_hash.to_json } if ENV['SLEEPER_DEBUG']=='true'
 		end
 	end
@@ -62,12 +72,13 @@ module Scaler
 		end
 
 		if config?(:profiling) then
-			if defined?(RubyProf) then
+			if defined?(RubyProf) or defined?(Profiler__) then
+				log { "No RubyProf, we'll be using the builtin ruby Profiler, THINGS WILL BE SLOW!" } unless defined? Rubyprof
 				log { "Initializing profiler..." }
-				ActionController::Base.class_eval { include Profiler } unless ActionController.Base.include?(Profiler)
+				ActionController::Base.class_eval { include Profiler } unless ActionController::Base.include?(Profiler)
 				Profiler.enable!
 			else
-				log { "Can't initialize profiler, try gem install ruby-prof..."}
+				log { "Can't initialize profiler, try: gem install ruby-prof" }
 			end
 		end
 
