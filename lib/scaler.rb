@@ -24,7 +24,8 @@ module Scaler
 			log { 'Loaded, we\'re running.' }
 		else
 			log { 'Not in a recognized framework, Sleeper is disabled.' }
-			log { ENV.to_hash.to_yaml } if ENV['SLEEPER_DEBUG']=='true'
+			log { Module.constants.to_json }# if ENV['SLEEPER_DEBUG']=='true'
+			log { ENV.to_hash.to_json } if ENV['SLEEPER_DEBUG']=='true'
 		end
 	end
 	
@@ -88,11 +89,40 @@ module Scaler
 	end
 
 	def self.in_webapp?
-		return true if defined? Mongrel::HttpServer
-		return true if defined? Passenger::AbstractServer
-		return true if ENV['HEROKU_ENV'] or ENV['HEROKU_SLUG'] # Theoretically should get picked up by the Thin finder, but we'll probably want to do extra magic for Heroku.
-		return true if defined? FCGI
-		return true if defined? Thin::Server # TODO: further testing
+		if defined? Mongrel::HttpServer
+			log { 'Mongrel-backed environment booting, initializing Sleeper...' }
+			return true 
+		end
+		
+		if defined? Passenger or defined? PhusionPassenger
+			log { 'Passenger-backed environment booting, initializing Sleeper...' }
+			return true 
+		end
+		
+		if ENV['HEROKU_ENV'] or ENV['HEROKU_SLUG'] # Theoretically should get picked up by the Thin finder, but we'll probably want to do extra magic for Heroku.
+			log { 'Heroku-backed environment booting, initializing Sleeper...' }
+			return true
+		end
+		
+	  if defined? FCGI
+			log { 'FastCGI-backed environment booting, initializing Sleeper...' }
+			return true
+		end
+		
+		# WEBrick needs to be checked before Thin
+		if defined? WEBrick::VERSION
+			log { 'WEBrick-backed environment booting, initializing Sleeper...' }
+			return true 
+		end
+
+		if defined? Thin::Server
+			log { 'Thin-backed environment booting, initializing Sleeper...' }
+			return true
+		end
+		if defined? Unicorn::HttpServer
+			log { 'Unicorn-backed environment booting, initializing Sleeper...' }
+			return true
+		end
 
 		return true if ENV['FAKE_WEBAPP'] # For testing :)
 
