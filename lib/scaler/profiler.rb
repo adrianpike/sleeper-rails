@@ -27,7 +27,10 @@ module Scaler
      		when :Profiler
 					sio = StringIO.new
 					Profiler__.stop_profile
-					Profiler__.print_profile(sio)
+					begin
+						Profiler__.print_profile(sio)
+					rescue TypeError
+					end
 					
 					sio.rewind
 					output = sio.read
