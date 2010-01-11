@@ -26,12 +26,16 @@ module Scaler
 		if in_webapp? then
 			log { "Loading..." }
 
-			@config = Configurator.new(manual_config)
-			@statistics = Statistics.new
+			begin
+				@config = Configurator.new(manual_config)
+				@statistics = Statistics.new
 		
-			load_modules
+				load_modules
 		
-			log { 'Loaded, we\'re running.' }
+				log { 'Loaded, we\'re running.' }
+			rescue Errno::ENOENT
+				log { 'Looks like Sleeper\'s not configured yet, so I\'ll just chill.' }
+			end
 		else
 			log { 'Not in a recognized framework, Sleeper is disabled.' }
 			log { Module.constants.to_json } if ENV['SLEEPER_DEBUG']=='true'

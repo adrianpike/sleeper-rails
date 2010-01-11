@@ -123,8 +123,10 @@ EOM
 	def get_key
 		printf "What's your sleeper key? "
 		key = STDIN.gets.chomp
-		printf "\nYou entered '#{key}', is this correct? (y/n)"
-		 return key if (STDIN.gets.match(/^y$/i))
+		if key.size>0 then
+			printf "\nYou entered '#{key}', is this correct? (y/n)"
+		 	return key if (STDIN.gets.match(/^y$/i))
+		end
 		get_key	
 	end
 end
