@@ -6,7 +6,7 @@ require 'rcov/rcovtask'
 desc 'Default: run unit tests.'
 task :default => :test
 
-desc 'Test the scaler plugin.'
+desc 'Test the sleeper plugin.'
 Rake::TestTask.new(:test) do |t|
   t.libs << 'lib'
   t.libs << 'test'
@@ -22,10 +22,10 @@ Rcov::RcovTask.new(:rcov) do |t|
   t.rcov_opts << '--exclude "gems/*"'
 end
 
-desc 'Generate documentation for the scaler plugin.'
+desc 'Generate documentation for the sleeper plugin.'
 Rake::RDocTask.new(:rdoc) do |rdoc|
   rdoc.rdoc_dir = 'rdoc'
-  rdoc.title    = 'Scaler'
+  rdoc.title    = 'Sleeper'
   rdoc.options << '--line-numbers' << '--inline-source'
   rdoc.rdoc_files.include('README')
   rdoc.rdoc_files.include('lib/**/*.rb')

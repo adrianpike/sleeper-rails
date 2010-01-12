@@ -6,7 +6,7 @@ require 'term/ansicolor'
 
 =end
 
-module Scaler
+module Sleeper
 	class Walker
 		include Term::ANSIColor
 		

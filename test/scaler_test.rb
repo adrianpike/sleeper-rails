@@ -18,7 +18,7 @@ module Net
 	end
 end
 
-class ScalerTest < Test::Unit::TestCase
+class SleeperTest < Test::Unit::TestCase
 
 	context 'sleeper configured to pull things off the internet' do
 		should 'pull down a config' do
@@ -27,7 +27,7 @@ class ScalerTest < Test::Unit::TestCase
 
 	context 'sleeper config a manual configuration of everything off' do
 		setup do
-			Scaler.init({
+			Sleeper.init({
 				:sleeper_host=>'http://localhost',
 				:log=>STDOUT,
 				:client_key=>'foobar',
@@ -53,13 +53,13 @@ class ScalerTest < Test::Unit::TestCase
 		end
 			
 		should 'post some basic data and have sane results' do
-			Scaler.statistics.add_to_this_request({:foo=>'bar'})
-			Scaler.statistics.finish_request!(@controller)
-			Scaler.statistics.gather_host_data
+			Sleeper.statistics.add_to_this_request({:foo=>'bar'})
+			Sleeper.statistics.finish_request!(@controller)
+			Sleeper.statistics.gather_host_data
 			
 			$POSTED_DATA = []
 			
-			Scaler.statistics.upload!
+			Sleeper.statistics.upload!
 				
 			results = ActiveSupport::JSON.decode($POSTED_DATA.last['data'])
 			
@@ -79,15 +79,15 @@ class ScalerTest < Test::Unit::TestCase
 		
 		should 'chunk up huge posts' do
 			10.times do |i|
-				Scaler.statistics.add_to_this_request({:foo=>'bar', :zed=>i.to_s})
-				Scaler.statistics.finish_request!(@controller)
+				Sleeper.statistics.add_to_this_request({:foo=>'bar', :zed=>i.to_s})
+				Sleeper.statistics.finish_request!(@controller)
 			end
 			
-			Scaler.statistics.gather_host_data
+			Sleeper.statistics.gather_host_data
 			
 			$POSTED_DATA = []
 			
-			Scaler.statistics.upload!
+			Sleeper.statistics.upload!
 			
 			assert_equal $POSTED_DATA.length, 9
 			

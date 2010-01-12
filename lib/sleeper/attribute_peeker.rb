@@ -1,27 +1,20 @@
-### AR object lifecycle:
-# columns loaded
-# columns read / written
-# gc'ed
-
-module Scaler
+module Sleeper
   module AttributePeeker
-	mattr_accessor :enabled
+		mattr_accessor :enabled
 
-	def self.enable!; @@enabled=true; end
-	def self.disable!; @@enabled=false; end
+		def self.enable!; @@enabled=true; end
+		def self.disable!; @@enabled=false; end
     
-  # include this to ActiveRecord::Base
-  def self.included(base)
-    Scaler.log(:peeker, Logger::DEBUG) { "EXTENDING AR::Base" }
+  	# include this to ActiveRecord::Base
+  	def self.included(base)
+			ActiveRecord::AttributeMethods::ClassMethods.alias_method_chain :define_read_method, :logging
 		
-		ActiveRecord::AttributeMethods::ClassMethods.alias_method_chain :define_read_method, :logging
-		
-		ActiveRecord::Base.class_eval("
+			ActiveRecord::Base.class_eval("
 				class << self
 					alias_method_chain :find_by_sql, :logging
 				end
 			")
-  end
+  	end
     
   end
 end
@@ -33,11 +26,10 @@ module ActiveRecord
 			results.each{|r|
 				attributes = r.instance_variable_get("@attributes").collect{|k,v| k }
 				
-				# TODO: TRANSACT
-				
-				loads = Scaler.statistics.request_key(:activerecord_loads) || {}
-				loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => Scaler.sanitize_callback(caller)[0..(Scaler.config?(:trace_depth))] }
-				Scaler.statistics.set_request_key(:activerecord_loads,loads)
+				# TODO : TEST
+				loads = Sleeper.statistics.request_key(:activerecord_loads) || {} 
+				loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => Sleeper::Utilities.sanitize_callback(caller)[0..(Sleeper.config?(:trace_depth))] }
+				Sleeper.statistics.set_request_key(:activerecord_loads,loads)
 				
 				# TODO: END TRANSACT
 			
@@ -64,13 +56,13 @@ module ActiveRecord::AttributeMethods
 	
 				# TODO: TRANSACT
 					
-		 loads = Scaler.statistics.request_key(:activerecord_loads) || {}
+		 loads = Sleeper.statistics.request_key(:activerecord_loads) || {}
 		
      if loads[self.object_id] then
 			 loads[self.object_id][:read_attributes] = [name] unless loads[self.object_id][:read_attributes]
 			 loads[self.object_id][:read_attributes] << name if loads[self.object_id][:read_attributes]
 			 loads[self.object_id][:read_attributes].uniq!
-			 Scaler.statistics.set_request_key(:activerecord_loads,loads)
+			 Sleeper.statistics.set_request_key(:activerecord_loads,loads)
 		 end
 		
 		 

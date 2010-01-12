@@ -6,7 +6,7 @@ begin
 rescue MissingSourceFile
 end
 
-module Scaler
+module Sleeper
   class Statistics    
     def initialize
 	    @data = empty_data_set
@@ -43,42 +43,33 @@ module Scaler
       @request[key] = [value] unless @request[key]
     end
     
-    def finish_request!(controller)
-      controller.finish_profiling if controller.respond_to? :finish_profiling
-      
-      @request[:time] = Time.new
-      @request[:url] = controller.request.request_uri
-      @request[:action] = controller.action_name
-      @request[:controller] = controller.controller_name
-      
-      if Scaler.config?(:verbose_statistics) then
-        @request[:ssl] = controller.ssl?
-        @request[:port] = controller.request.port
-        @request[:remote_addr] = controller.remote_addr
-      end
-      
+    def finish_request!(env)
+	 		@request[:time] = Time.new
+      @request[:url] = env['REQUEST_URI']
+      #["action_controller.rescue.request", "SERVER_NAME", "PATH_INFO", "rack.url_scheme", "rack.run_once", "rack.input", "action_controller.request.request_parameters", "SCRIPT_NAME", "SERVER_PROTOCOL", "HTTP_HOST", "rack.errors", "REMOTE_ADDR", "SERVER_SOFTWARE", "REQUEST_PATH", "rack.request.query_hash", "HTTP_VERSION", "rack.multithread", "rack.version", "action_controller.request.path_parameters", "REQUEST_URI", "rack.multiprocess", "SERVER_PORT", "rack.request.query_string", "action_controller.rescue.response", "rack.session.options", "GATEWAY_INTERFACE", "QUERY_STRING", "action_controller.request.query_parameters", "rack.session", "HTTP_ACCEPT", "REQUEST_METHOD"]
+
       @data[:requests] << @request
       @request = {}
     end
 
     def gather_host_data
-      @data[:load_average] = Scaler::HostStats.load_average
-      @data[:free_memory] = Scaler::HostStats.free_memory
-			@data[:version] = Scaler::VERSION
+      @data[:load_average] = Sleeper::HostStats.load_average
+      @data[:free_memory] = Sleeper::HostStats.free_memory
+			@data[:version] = Sleeper::VERSION
     end
     
 	# Thread-related goodies
     def upload_thread
       while @running
-        sleep Scaler.config?(:update_time).to_i
+        sleep Sleeper.config?(:update_time).to_i
      
         begin
-          Scaler.log(:statistics) { 'Uploading statistics ('+(@data[:requests].size.to_s rescue 'unknown')+' requests) to '+Scaler.config?(:sleeper_host)+' with key '+Scaler.config?(:client_key)+'...' }
+          Sleeper.log(:statistics) { 'Uploading statistics ('+(@data[:requests].size.to_s rescue 'unknown')+' requests) to '+Sleeper.config?(:sleeper_host)+' with key '+Sleeper.config?(:client_key)+'...' }
           gather_host_data
           upload!
           @data = empty_data_set
         rescue Exception => e
-          Scaler.log(:error, Logger::ERROR) { e }
+          Sleeper.log(:error, Logger::ERROR) { e }
         end
       end
     end
@@ -100,14 +91,14 @@ module Scaler
 
 		def json_data_chunks
 			jsoned = @data.to_json
-			if jsoned.size>Scaler.config?(:max_update_size)
+			if jsoned.size>Sleeper.config?(:max_update_size)
 				stub_request = @data.dup
 				stub_request.delete(:requests)
 				
 				stub_size = stub_request.to_json.size + 15 # overhead for key & brackets
 				overhead_size = jsoned.size - stub_size
 				
-				num_chunks = (((jsoned.size.to_f/Scaler.config?(:max_update_size).to_f).ceil*overhead_size.to_f + stub_size.to_f) / Scaler.config?(:max_update_size).to_f).ceil
+				num_chunks = (((jsoned.size.to_f/Sleeper.config?(:max_update_size).to_f).ceil*overhead_size.to_f + stub_size.to_f) / Sleeper.config?(:max_update_size).to_f).ceil
 				
 				requests = chunk_array(@data[:requests], num_chunks)
 				requests.collect {|r| 
@@ -123,37 +114,32 @@ module Scaler
     def upload!
 			json_data_chunks.each{|data|
 				begin
-					Timeout::timeout(Scaler.config?(:upload_timeout)) {
-						Scaler.log(:statistics) { ' - Uploading chunk of ' + data.size.to_s + ' bytes.' }
-	      		uri = URI.parse(Scaler.config?(:sleeper_host)+'/apps/'+Scaler.config?(:client_key))
+					Timeout::timeout(Sleeper.config?(:upload_timeout)) {
+						Sleeper.log(:statistics) { ' - Uploading chunk of ' + data.size.to_s + ' bytes.' }
+	      		uri = URI.parse(Sleeper.config?(:sleeper_host)+'/apps/'+Sleeper.config?(:client_key))
 	      		res = Net::HTTP.post_form(uri, {'data'=>data})
 						case res.code
 							when '200'
-								Scaler.log(:statistics) { '[ACCEPTED]' }
+								Sleeper.log(:statistics) { '[ACCEPTED]' }
 							when '401'
-								Scaler.log(:statistics) { '[REJECTED] - Sleeper doesn\'t recognize your key!' }
+								Sleeper.log(:statistics) { '[REJECTED] - Sleeper doesn\'t recognize your key!' }
 							when '413'
-								Scaler.log(:statistics) { '[REJECTED] - This was too big a submission to Sleeper.' }
+								Sleeper.log(:statistics) { '[REJECTED] - This was too big a submission to Sleeper.' }
 							else
-								Scaler.log(:statistics) { '[REJECTED] - There was a Sleeper server error:'+res.code.to_s }
+								Sleeper.log(:statistics) { '[REJECTED] - There was a Sleeper server error:'+res.code.to_s }
 						end
 					}
 				rescue Timeout::Error
-					Scaler.log(:scaler, Logger::ERROR) { 'Timeout contacting the Sleeper server, they probably screwed up.' }
+					Sleeper.log(:sleeper, Logger::ERROR) { 'Timeout contacting the Sleeper server, they probably screwed up.' }
 				end
     	}
-			Scaler.log(:statistics) { 'Statistics batch complete.' }
+			Sleeper.log(:statistics) { 'Statistics batch complete.' }
 		end
   end
 end
 
 if defined?(PhusionPassenger)
     PhusionPassenger.on_event(:starting_worker_process) do |forked|
-        if forked
-            # We're in smart spawning mode.
-            Scaler.statistics.fire_upload_thread!
-        else
-            # We're in conservative spawning mode. We don't need to do anything.
-        end
+        Sleeper.statistics.fire_upload_thread! if forked
     end
 end

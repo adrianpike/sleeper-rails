@@ -1,6 +1,6 @@
 require 'benchmark'
 
-module Scaler
+module Sleeper
 	module Explainer
 		mattr_accessor :enabled
 
@@ -42,7 +42,7 @@ module Scaler
 							explanation = result if result.is_a? Array
 							explanation = result.fetch_hash if result.is_a? Mysql::Result rescue nil
 							explanation = result.result if result.is_a? PGresult rescue nil
-							Scaler.statistics.append_to_this_request_key(:explained, 
+							Sleeper.statistics.append_to_this_request_key(:explained, 
 							{
 								:query => args[0],
 								:connection_adapter=> @connection.class.to_s,
@@ -50,10 +50,10 @@ module Scaler
 								})
 							result.free if result.is_a? Mysql::Result rescue nil
 						rescue ActiveRecord::StatementInvalid => e
-							Scaler.log(:explainer, Logger::ERROR) { "MySQL Error in explainer: #{e}" }
+							Sleeper.log(:explainer, Logger::ERROR) { "MySQL Error in explainer: #{e}" }
 						end
 					else
-						Scaler.statistics.append_to_this_request_key(:unexplained, { :query => args[0]})
+						Sleeper.statistics.append_to_this_request_key(:unexplained, { :query => args[0]})
 					end
 				
 					@connection.send(method, *args, &block)
@@ -69,7 +69,7 @@ module Scaler
 
 			def method_missing(method, *args, &block)
 				if method == :update or method == :insert then
-					Scaler.statistics.append_to_this_request_key(:unexplained, { :query => args[0] })
+					Sleeper.statistics.append_to_this_request_key(:unexplained, { :query => args[0] })
 				end
 				@original_connection.send(method, *args, &block)
 			end
@@ -80,11 +80,11 @@ module Scaler
 			def explain(options={})
 				class << self
 					def connection_with_wrapper
-						if Scaler::Explainer.enabled? then
+						if Sleeper::Explainer.enabled? then
 							if Rails.configuration.cache_classes
 								@@wrapper
 							else
-								Scaler::Explainer::ConnectionWrapper.new(connection_without_wrapper)
+								Sleeper::Explainer::ConnectionWrapper.new(connection_without_wrapper)
 							end
 						else
 							connection_without_wrapper
@@ -92,7 +92,7 @@ module Scaler
 					end
 					alias_method_chain :connection, :wrapper unless self.respond_to?('connection_without_wrapper')
 				end
-					@@wrapper = Scaler::Explainer::ConnectionWrapper.new(connection_without_wrapper) if Rails.configuration.cache_classes
+					@@wrapper = Sleeper::Explainer::ConnectionWrapper.new(connection_without_wrapper) if Rails.configuration.cache_classes
 			end
 		end
 	end

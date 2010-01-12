@@ -1,4 +1,4 @@
-module Scaler
+module Sleeper
   module Profiler
 	mattr_accessor :enabled, :mode
 
@@ -36,13 +36,13 @@ module Scaler
 					output = sio.read
 				end
 
-    		Scaler.statistics.add_to_this_request({'profiling_mode'=>@@mode,'profiling'=>output})
+    		Sleeper.statistics.add_to_this_request({'profiling_mode'=>@@mode,'profiling'=>output})
 			end
     end
    
     def self.included(base)
-      base.send 'before_filter', 'start_profiling'
-	  	base.send 'after_filter', 'finish_profiling'
+      base.send 'before_filter', 'start_profiling' #TODO
+	  	base.send 'after_filter', 'finish_profiling' #TODO
 
 			if defined? Profiler__ then
 				@@mode = :Profiler

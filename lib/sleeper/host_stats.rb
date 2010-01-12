@@ -1,4 +1,4 @@
-module Scaler
+module Sleeper
   class HostStats
   
     def self.free_memory

@@ -1,5 +1,5 @@
 # desc "Explaining what the task does"
-# task :scaler do
+# task :sleeper do
 #   # Task goes here
 # end
 
@@ -12,7 +12,7 @@ namespace(:sleeper) do
 	
 	desc('Walk around a site, push buttons, pull levers, and generally try to wreak havoc.')
 	task :walk => :environment do |t,args|
-		@w = Scaler::Walker.new(args.host,true)
+		@w = Sleeper::Walker.new(args.host,true)
 		@w.walk!(args.depth || 10)
 	end
 	

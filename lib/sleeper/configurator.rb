@@ -1,4 +1,4 @@
-module Scaler
+module Sleeper
   class Configurator
 
     # Most of this will be overwritten by config_thread
@@ -49,23 +49,23 @@ module Scaler
       # TODO: re analyze config, uninstall everything and reinstall what needs to be reinstalled
 
 	  # there's a few second hole here where modules will flicker off & on
-	  Scaler.unload_modules
-	  Scaler.load_modules
+	  Sleeper.unload_modules
+	  Sleeper.load_modules
     end
     
     def config_thread
       while @running
         begin
-          Scaler.log(:config) { 'Updating configuration...' }
+          Sleeper.log(:config) { 'Updating configuration...' }
           update_config
 		rescue ActiveSupport::JSON::ParseError
-			Scaler.log(:config) { 'Unable to update configuration, we received some bad JSON. (Is Sleeper down?) We\'ll try again in a few minutes.' }
+			Sleeper.log(:config) { 'Unable to update configuration, we received some bad JSON. (Is Sleeper down?) We\'ll try again in a few minutes.' }
 			sleep 600 # wait 10 minutes, we'll use default behavior for now
         rescue Exception => e
-          Scaler.log(:error, Logger::ERROR) { e }
-          Scaler.log(:error, Logger::ERROR) { e.backtrace }
+          Sleeper.log(:error, Logger::ERROR) { e }
+          Sleeper.log(:error, Logger::ERROR) { e.backtrace.join("\n") }
         end
-        sleep Scaler.config?(:config_update_time)
+        sleep Sleeper.config?(:config_update_time)
       end
     end
     

@@ -1,7 +1,6 @@
 Sleeper-Rails
 ======
-This is the Rails plugin for Sleeper - (http://sleeperapp.com). It's currently undergoing *heavy* development. It's safe for most production sites.
-You will notice it's got a bit of an identity crisis, what with being called scaler some places, and sleeper others, and sleeper-rails in still more. Mea culpa. The official name moving forward is sleeper-rails.
+This is the Rails plugin for Sleeper - (http://sleeperapp.com).
 
 Quickstart
 =====
@@ -20,7 +19,8 @@ Quickstart
 Requirements
 =====
 - MySQL or PostgreSQL for explaining. Other backends work fine, but won't generate explanations.
-- Passenger, Mongrel, or Heroku for server stack.
+- Any Rack-based app.
+- ActiveRecord for unused attribute analysis.
 
 Known Issues
 =====
@@ -32,30 +32,30 @@ TODO
 =====
 - Authenticate & encrypt updates.
 - Better stack trace collection.
-- Unicorn support.
 - Better handling of internal exceptions, rather than barfing all over the poor user's app.
+- http://wiki.opscode.com/display/ohai/Home
 
 Basic Sleeper-Rails Architecture
 =====
-Scaler::Configurator
+Sleeper::Configurator
 - Configurator handles all the configuration for Sleeper-Rails.
 
-Scaler::Statistics
+Sleeper::Statistics
 - Store data, aggregate it, and JSON it upstream to Sleeper with some sort of hash authentication.
 
-Scaler::Explainer
+Sleeper::Explainer
 - Hack into all the AR queries, and run a WHERE for that query.
 	- Store both the original query and the WHERE, as well as the line number & filename of the original query.
 
-Scaler::Tracer
+Sleeper::Tracer
 - Time all my ActionController requests - bust into the default benchmarking.
 	- Send upstream total time, DB time, and view time, as well as the controller, action, and URL.
 - Run a Ruby trace graph on every ActionController request, show me where I'm spending the most time.
 
-Scaler::Walker
+Sleeper::Walker
 - Wander around a site and poke at things.
 
-Scaler::AttributePeeker
+Sleeper::AttributePeeker
 - Fancy magic to let us know what attributes got SELECT'ed but weren't read. It doesn't work yet.
 
 Non-automated Tools
