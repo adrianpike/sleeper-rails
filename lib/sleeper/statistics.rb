@@ -45,7 +45,7 @@ module Sleeper
     
     def finish_request!(env)
 	 		@request[:time] = Time.new
-      @request[:url] = env['REQUEST_URI']
+      @request[:url] = env['REQUEST_URI'] || (env['SCRIPT_NAME'] + env['PATH_INFO'])
       #["action_controller.rescue.request", "SERVER_NAME", "PATH_INFO", "rack.url_scheme", "rack.run_once", "rack.input", "action_controller.request.request_parameters", "SCRIPT_NAME", "SERVER_PROTOCOL", "HTTP_HOST", "rack.errors", "REMOTE_ADDR", "SERVER_SOFTWARE", "REQUEST_PATH", "rack.request.query_hash", "HTTP_VERSION", "rack.multithread", "rack.version", "action_controller.request.path_parameters", "REQUEST_URI", "rack.multiprocess", "SERVER_PORT", "rack.request.query_string", "action_controller.rescue.response", "rack.session.options", "GATEWAY_INTERFACE", "QUERY_STRING", "action_controller.request.query_parameters", "rack.session", "HTTP_ACCEPT", "REQUEST_METHOD"]
 
       @data[:requests] << @request

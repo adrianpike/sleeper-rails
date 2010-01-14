@@ -9,5 +9,8 @@ require 'active_support'
 require 'active_support/test_case'
 
 Dir.glob(File.join(File.dirname(__FILE__), "..", "lib", "sleeper", "*.rb")).each {|f| require f }
-
+Dir.glob(File.join(File.dirname(__FILE__), "..", "lib", "*.rb")).each {|f| require f }
 require 'test/unit'
+
+require 'shoulda'
+require 'rack/test'

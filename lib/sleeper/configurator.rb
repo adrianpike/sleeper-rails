@@ -14,7 +14,7 @@ module Sleeper
         :explaining => true,
         :traces => false,
 				:trace_depth => 10,
-				:max_update_size => 2000000, # in bytes. change this and your uploads may not work.
+				:max_update_size => 2000000, # in bytes. ~2MB
         :profiling => false,
         :peeking => false,
 				:upload_timeout => 60, # Could take a while to stuff 2MB upstream ;)

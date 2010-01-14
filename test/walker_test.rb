@@ -1,5 +1,4 @@
 require 'test_helper'
-require 'sleeper'
 
 class WalkerTest < ActiveSupport::TestCase
   # Replace this with your real tests.

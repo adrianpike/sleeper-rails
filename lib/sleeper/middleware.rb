@@ -8,14 +8,12 @@ module Sleeper
 		def call(env); dup._call(env); end # To make it thread-safe
 
 		def _call(env)
-			# Do any preparation we need for the app call
+			Sleeper.prepare_request(env)
 			
 			@status, @headers, @response = @app.call(env)
 			
-			Sleeper.log { 'Just finished a request.' }
-			Sleeper.statistics.finish_request!(env)
-			# Do any cleanup we need here
-		
+			Sleeper.finish_request(env, @status, @headers, @response)
+			
 			[@status, @headers, @response]
 		end
 	end

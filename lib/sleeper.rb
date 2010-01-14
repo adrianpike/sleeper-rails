@@ -33,11 +33,24 @@ module Sleeper
 	
 	def self.load_middleware
 		log { "Initializing Sleeper Middleware..." }
-		ActionController::Dispatcher.middleware.use(Sleeper::Middleware)
+		ActionController::Dispatcher.middleware.use(Sleeper::Middleware) if defined? Rails
+		Sinatra::Base.use(Sleeper::Middleware) if defined? Sinatra # UNTESTED
+		use Sleeper::Middleware if defined? Merb
 	end
 	
-	# this is all really nasty because there's no uninclude yet
-	# basically if you enable something and then disable it, it's still there hogging up some memory until you restart your passenger or mongrel.
+	def self.prepare_request(env)
+		Benchmarker.prepare_request
+	end
+	
+	def self.finish_request(env, status, headers, response)
+		Benchmarker.finish_request(env)
+		
+		@statistics.finish_request!(env)
+		Sleeper.log { 'Just finished a request.' }
+	end
+	
+	# this is all really nasty because there's no uninclude
+	# basically if you enable something and then disable it, it's still there hogging up memory until your env reloads.
 	def self.unload_modules
 		log { 'Disabling benchmarker...' }
 		Benchmarker.disable!
@@ -52,11 +65,11 @@ module Sleeper
 	def self.load_modules
 		if config?(:benchmarking) then 
 			log { "Initializing benchmarker..." }
-			ActionController::Base.class_eval { include Benchmarker } unless ActionController::Base.include?(Benchmarker)
+			# ActionController::Base.class_eval { include Benchmarker } unless ActionController::Base.include?(Benchmarker)
 			Benchmarker.enable!
 		end
 
-		if config?(:explaining) and Rails.env!='cucumber' then
+		if config?(:explaining) then
 			log { "Initializing explainer..." }
 			ActiveRecord::Base.class_eval { include Explainer } unless ActiveRecord::Base.include?(Explainer)
 			Explainer.enable!
@@ -64,7 +77,7 @@ module Sleeper
 
 		if config?(:profiling) then
 			if defined?(RubyProf) or defined?(Profiler__) then
-				log { "No RubyProf, we'll be using the builtin ruby Profiler, THINGS WILL BE SLOW!" } unless defined? Rubyprof
+				log { "---- SLOWDOWN WARNING ----  No RubyProf, we'll be using the pure Ruby profiler." } unless defined? Rubyprof
 				log { "Initializing profiler..." }
 				ActionController::Base.class_eval { include Profiler } unless ActionController::Base.include?(Profiler)
 				Profiler.enable!
