@@ -19,7 +19,7 @@ Rcov::RcovTask.new(:rcov) do |t|
   t.libs << 'test'
   t.pattern = 'test/*_test.rb'
   t.verbose = true
-  t.rcov_opts  = ["--include-file vendor/sleeper-rails/", "--exclude /Library/"]
+  t.rcov_opts  = ["--include-file vendor/sleeper-rails/", "--exclude /Library/,/Users/"]
 end
 
 desc 'Generate documentation for the sleeper plugin.'

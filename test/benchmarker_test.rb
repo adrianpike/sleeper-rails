@@ -1,5 +1,10 @@
+SLEEPER_DONT_BOOT = true
+
+require(File.dirname(__FILE__) + "/../../../../config/environment") unless defined?(Rails)
+	
 require 'test_helper'
 require 'rack/lobster'
+
 
 $POSTED_DATA = []
 
@@ -32,7 +37,7 @@ class BenchmarkerTest < Test::Unit::TestCase
 		end
 		
 		should 'benchmark a pure rack request' do
-			test_url = '/fooo/dasfasd'
+			test_url = '/benchmark_testery/rack'
 			browser = Rack::Test::Session.new(Rack::MockSession.new(
 			Rack::Builder.new {
 	 			map "/" do
@@ -55,17 +60,18 @@ class BenchmarkerTest < Test::Unit::TestCase
 			assert_equal first_posted['requests'].size, 1
 			assert_equal first_posted['requests'].first['url'], test_url
 			assert_not_nil first_posted['requests'].first['view_time']
-			assert_in_delta first_posted['requests'].first['view_time'], time, 20
+			assert_nil first_posted['requests'].first['database_time'] # no database infos, we're not in t3h r@1lZ ;_;
+			assert_in_delta first_posted['requests'].first['view_time'], time, 1000
 		end
 		
 		should 'benchmark a rails request' do
-			test_url = '/fooo/dasfasd'
+			test_url = '/benchmark_testery/rails'
 			
+			$POSTED_DATA = []
+
 			browser = Rack::Test::Session.new(Rack::MockSession.new(
 			Rack::Builder.new {
 	 			map "/" do
-					use Rack::Head
-	 				use Sleeper::Middleware
 					run ActionController::Dispatcher.new
 	 			end
 	 		}.to_app
@@ -73,6 +79,16 @@ class BenchmarkerTest < Test::Unit::TestCase
 			
 			browser.get test_url
 			
+			Sleeper.statistics.gather_host_data
+			Sleeper.statistics.upload!
+			
+			assert_equal $POSTED_DATA.length, 1
+			first_posted = ActiveSupport::JSON.decode($POSTED_DATA.first['data'])
+			assert_equal first_posted['requests'].size, 1
+			assert_equal first_posted['requests'].first['url'], test_url
+			assert_not_nil first_posted['requests'].first['view_time']
+			assert_not_nil first_posted['requests'].first['database_time']
+			assert_equal first_posted['requests'].first['database_time'], 0
 		end
 	end
 

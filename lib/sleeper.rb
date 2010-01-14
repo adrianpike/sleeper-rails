@@ -22,24 +22,29 @@ module Sleeper
 		
 		@logger = Logger.new(log_path)
 		begin
+			log { 'Initializing Sleeper...' }
 			@config = Configurator.new(manual_config)
 			@statistics = Statistics.new
 			load_modules
-			load_middleware
+			inject_middleware
 		rescue Errno::ENOENT
 			log { 'Looks like Sleeper\'s not configured yet, so I\'ll just chill.' }
 		end
 	end
 	
-	def self.load_middleware
+	def self.inject_middleware
 		log { "Initializing Sleeper Middleware..." }
-		ActionController::Dispatcher.middleware.use(Sleeper::Middleware) if defined? Rails
+		
+		if defined? Rails
+			ActionController::Dispatcher.middleware.use(Sleeper::Middleware) unless ActionController::Dispatcher.middleware.include?(Sleeper::Middleware)
+		end
+		
 		Sinatra::Base.use(Sleeper::Middleware) if defined? Sinatra # UNTESTED
-		use Sleeper::Middleware if defined? Merb
+		use Sleeper::Middleware if defined? Merb # UNTESTED
 	end
 	
 	def self.prepare_request(env)
-		Benchmarker.prepare_request
+		Benchmarker.prepare_request(env)
 	end
 	
 	def self.finish_request(env, status, headers, response)
