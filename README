@@ -52,18 +52,8 @@ Sleeper::Tracer
 	- Send upstream total time, DB time, and view time, as well as the controller, action, and URL.
 - Run a Ruby trace graph on every ActionController request, show me where I'm spending the most time.
 
-Sleeper::Walker
-- Wander around a site and poke at things.
-
 Sleeper::AttributePeeker
 - Fancy magic to let us know what attributes got SELECT'ed but weren't read. It doesn't work yet.
-
-Non-automated Tools
-=======
-
-Walker:
-
-* rake sleeper:walk host=http://localhost:3000 depth=10
 
 Credits!
 =======

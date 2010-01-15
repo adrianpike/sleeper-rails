@@ -43,11 +43,11 @@ module Sleeper
 		use Sleeper::Middleware if defined? Merb # UNTESTED
 	end
 	
-	def self.prepare_request(env)
+	def self.prepare_request(env={})
 		Benchmarker.prepare_request(env)
 	end
 	
-	def self.finish_request(env, status, headers, response)
+	def self.finish_request(env, status = nil, headers = nil, response = nil)
 		Benchmarker.finish_request(env)
 		
 		@statistics.finish_request!(env)

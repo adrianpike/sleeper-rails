@@ -5,7 +5,6 @@ require(File.dirname(__FILE__) + "/../../../../config/environment") unless defin
 require 'test_helper'
 require 'rack/lobster'
 
-
 $POSTED_DATA = []
 
 module Net

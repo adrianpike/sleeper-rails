@@ -10,12 +10,6 @@ end
 
 namespace(:sleeper) do
 	
-	desc('Walk around a site, push buttons, pull levers, and generally try to wreak havoc.')
-	task :walk => :environment do |t,args|
-		@w = Sleeper::Walker.new(args.host,true)
-		@w.walk!(args.depth || 10)
-	end
-	
 	desc('Notify sleeper that we\'ve just deployed.')
 	task :deploy do
 		

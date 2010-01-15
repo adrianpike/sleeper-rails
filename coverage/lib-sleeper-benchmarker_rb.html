@@ -28,8 +28,8 @@
         <tbody>
           <tr>
             <td class="left_align"><a href="lib-sleeper-benchmarker_rb.html">lib/sleeper/benchmarker.rb</a></td>
-            <td class='right_align'><tt>27</tt></td>
-            <td class='right_align'><tt>22</tt></td>
+            <td class='right_align'><tt>31</tt></td>
+            <td class='right_align'><tt>26</tt></td>
             <td class="left_align"><div class="percent_graph_legend"><tt class=''>100.00%</tt></div>
           <div class="percent_graph">
             <div class="covered" style="width:100px"></div>
@@ -105,121 +105,145 @@
           
           
           <tr class="marked">
-            <td><pre><a name="line9">9</a> 			@@start_time = Time.current.to_f</pre></td>
+            <td><pre><a name="line9">9</a> 			if @@enabled then</pre></td>
           </tr>
         
           
           
           <tr class="marked">
-            <td><pre><a name="line10">10</a> 		end</pre></td>
+            <td><pre><a name="line10">10</a> 				@@start_time = Time.current.to_f</pre></td>
           </tr>
         
           
           
           <tr class="inferred">
-            <td><pre><a name="line11">11</a> 	</pre></td>
+            <td><pre><a name="line11">11</a> 			end</pre></td>
           </tr>
         
           
           
           <tr class="marked">
-            <td><pre><a name="line12">12</a> 		def self.finish_request(env = {})</pre></td>
-          </tr>
-        
-          
-          
-          <tr class="marked">
-            <td><pre><a name="line13">13</a> 			if env[&quot;action_controller.rescue.response&quot;]</pre></td>
-          </tr>
-        
-          
-          
-          <tr class="marked">
-            <td><pre><a name="line14">14</a> 				controller = env[&quot;action_controller.rescue.response&quot;].instance_variable_get('@template').instance_variable_get('@controller')</pre></td>
-          </tr>
-        
-          
-          
-          <tr class="marked">
-            <td><pre><a name="line15">15</a> 				db_sum = controller.instance_variable_get('@db_rt_before_render') + controller.instance_variable_get('@db_rt_after_render') rescue nil</pre></td>
-          </tr>
-        
-          
-          
-          <tr class="marked">
-            <td><pre><a name="line16">16</a> 				view_time = controller.instance_variable_get('@view_runtime')</pre></td>
+            <td><pre><a name="line12">12</a> 		end</pre></td>
           </tr>
         
           
           
           <tr class="inferred">
-            <td><pre><a name="line17">17</a> 			else</pre></td>
+            <td><pre><a name="line13">13</a> 	</pre></td>
           </tr>
         
           
           
           <tr class="marked">
-            <td><pre><a name="line18">18</a> 				@@stop_time = Time.current.to_f</pre></td>
+            <td><pre><a name="line14">14</a> 		def self.finish_request(env = {})</pre></td>
           </tr>
         
           
           
           <tr class="marked">
-            <td><pre><a name="line19">19</a> 				view_time = (@@stop_time - @@start_time) * 1000</pre></td>
+            <td><pre><a name="line15">15</a> 			if @@enabled then</pre></td>
           </tr>
         
           
           
           <tr class="marked">
-            <td><pre><a name="line20">20</a> 				db_sum = nil</pre></td>
-          </tr>
-        
-          
-          
-          <tr class="inferred">
-            <td><pre><a name="line21">21</a> 			end</pre></td>
-          </tr>
-        
-          
-          
-          <tr class="inferred">
-            <td><pre><a name="line22">22</a> 			</pre></td>
+            <td><pre><a name="line16">16</a> 				if env[&quot;action_controller.rescue.response&quot;]</pre></td>
           </tr>
         
           
           
           <tr class="marked">
-            <td><pre><a name="line23">23</a> 			Sleeper.statistics.add_to_this_request({'view_time'=&gt;view_time,'database_time'=&gt;db_sum})</pre></td>
+            <td><pre><a name="line17">17</a> 					controller = env[&quot;action_controller.rescue.response&quot;].instance_variable_get('@template').instance_variable_get('@controller')</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line18">18</a> 					db_sum = controller.instance_variable_get('@db_rt_before_render') + controller.instance_variable_get('@db_rt_after_render') rescue nil</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line19">19</a> 					view_time = controller.instance_variable_get('@view_runtime')</pre></td>
           </tr>
         
           
           
           <tr class="inferred">
-            <td><pre><a name="line24">24</a> 		end</pre></td>
+            <td><pre><a name="line20">20</a> 				else</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line21">21</a> 					@@stop_time = Time.current.to_f</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line22">22</a> 					view_time = (@@stop_time - @@start_time) * 1000</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line23">23</a> 					db_sum = nil</pre></td>
           </tr>
         
           
           
           <tr class="inferred">
-            <td><pre><a name="line25">25</a> </pre></td>
+            <td><pre><a name="line24">24</a> 				end</pre></td>
           </tr>
         
           
           
           <tr class="inferred">
-            <td><pre><a name="line26">26</a> 	end	</pre></td>
+            <td><pre><a name="line25">25</a> 			</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line26">26</a> 				Sleeper.statistics.add_to_this_request({'view_time'=&gt;view_time,'database_time'=&gt;db_sum})</pre></td>
           </tr>
         
           
           
           <tr class="inferred">
-            <td><pre><a name="line27">27</a> end</pre></td>
+            <td><pre><a name="line27">27</a> 			end</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="marked">
+            <td><pre><a name="line28">28</a> 		end</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="inferred">
+            <td><pre><a name="line29">29</a> </pre></td>
+          </tr>
+        
+          
+          
+          <tr class="inferred">
+            <td><pre><a name="line30">30</a> 	end	</pre></td>
+          </tr>
+        
+          
+          
+          <tr class="inferred">
+            <td><pre><a name="line31">31</a> end</pre></td>
           </tr>
         
       </tbody>
     </table>
 
-    <p>Generated on Thu Jan 14 01:01:48 -0800 2010 with <a href="http://github.com/relevance/rcov">rcov 0.9.2.1</a></p>
+    <p>Generated on Fri Jan 15 00:21:54 -0800 2010 with <a href="http://github.com/relevance/rcov">rcov 0.9.2.1</a></p>
 
   </body>
 </html>
