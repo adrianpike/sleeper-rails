@@ -2,6 +2,7 @@ module Sleeper
   module AttributePeeker
 		mattr_accessor :enabled
 
+		def self.enabled?; @@enabled; end
 		def self.enable!; @@enabled=true; end
 		def self.disable!; @@enabled=false; end
     
@@ -23,17 +24,19 @@ module ActiveRecord
 	class Base
 		def self.find_by_sql_with_logging(record)
 			results = find_by_sql_without_logging(record)
-			results.each{|r|
-				attributes = r.instance_variable_get("@attributes").collect{|k,v| k }
+			if Sleeper::AttributePeeker.enabled? then
+				results.each{|r|
+					attributes = r.instance_variable_get("@attributes").collect{|k,v| k }
 				
-				# TODO : TEST
-				loads = Sleeper.statistics.request_key(:activerecord_loads) || {} 
-				loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => Sleeper::Utilities.sanitize_callback(caller)[0..(Sleeper.config?(:trace_depth))] }
-				Sleeper.statistics.set_request_key(:activerecord_loads,loads)
+					# TODO : TEST
+					loads = Sleeper.statistics.request_key(:activerecord_loads) || {} 
+					loads[r.object_id] = { :class=>r.class.to_s, :attributes => attributes, :location => Sleeper::Utilities.sanitize_callback(caller)[0..(Sleeper.config?(:trace_depth))] }
+					Sleeper.statistics.set_request_key(:activerecord_loads,loads)
 				
-				# TODO: END TRANSACT
+					# TODO: END TRANSACT
 			
-			}
+				}
+			end
 			results
 		end
 	end
@@ -53,20 +56,17 @@ module ActiveRecord::AttributeMethods
 	end
 
   def read_attribute_with_logging(name)
-	
-				# TODO: TRANSACT
+			if Sleeper::AttributePeeker.enabled? then
 					
-		 loads = Sleeper.statistics.request_key(:activerecord_loads) || {}
+		 		loads = Sleeper.statistics.request_key(:activerecord_loads) || {}
 		
-     if loads[self.object_id] then
-			 loads[self.object_id][:read_attributes] = [name] unless loads[self.object_id][:read_attributes]
-			 loads[self.object_id][:read_attributes] << name if loads[self.object_id][:read_attributes]
-			 loads[self.object_id][:read_attributes].uniq!
-			 Sleeper.statistics.set_request_key(:activerecord_loads,loads)
-		 end
-		
-		 
-		# TODO: END TRANSACT
+		     if loads[self.object_id] then
+					 loads[self.object_id][:read_attributes] = [name] unless loads[self.object_id][:read_attributes]
+					 loads[self.object_id][:read_attributes] << name if loads[self.object_id][:read_attributes]
+					 loads[self.object_id][:read_attributes].uniq!
+					 Sleeper.statistics.set_request_key(:activerecord_loads,loads)
+				 end
+			end
 		
    end
 

@@ -5,18 +5,6 @@ require(File.dirname(__FILE__) + "/../../../../config/environment") unless defin
 require 'test_helper'
 require 'rack/lobster'
 
-$POSTED_DATA = []
-
-module Net
-	class HTTP
-		def self.post_form(url, content)
-			$POSTED_DATA << content
-
-			Net::HTTPResponse.new("fake_http","200",'hooray!')
-		end
-	end
-end
-
 class BenchmarkerTest < Test::Unit::TestCase
 	context 'with benchmarking turned on' do
 		setup do

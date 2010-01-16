@@ -4,23 +4,11 @@ require(File.dirname(__FILE__) + "/../../../../config/environment") unless defin
 
 require 'test_helper'
 
-module Net
-	class HTTP
-		def self.post_form(url, content)
-			$POSTED_DATA << content
-
-			Net::HTTPResponse.new("fake_http","200",'hooray!')
-		end
-	end
-end
-
-
 class PeekerTest < Test::Unit::TestCase
-
-	class UnkeyedTest < ActiveRecord::Base;	end
 	
 	context 'with AttributePeeker turned on' do
 		setup do
+			Sleeper.unload_modules
 			Sleeper.init({
 				:sleeper_host=>'http://localhost',
 				:log=>STDOUT,
@@ -54,28 +42,27 @@ class PeekerTest < Test::Unit::TestCase
 		end
 		
 		should 'recognize used columns through the accessor functions' do
+			define_test_models
+			prepare_sleeper_test!
 			
 			u=UnkeyedTest.find_by_key('lol')
 			
+			assert u
+			
 			foo = u.value
 			
-			env = {
-				'REQUEST_URI' => 'testing'
-			}
-			
 			$POSTED_DATA = []
-				
-			Sleeper.finish_request(env)
-			Sleeper.statistics.gather_host_data
-			Sleeper.statistics.upload!
+			finish_sleeper_test!
 			
 			
 			assert_equal $POSTED_DATA.length, 1
 			first_posted = ActiveSupport::JSON.decode($POSTED_DATA.first['data'])
+			
 			assert_equal first_posted['requests'].size, 1
 			k = first_posted['requests'].first['activerecord_loads'].keys.first
+			assert_equal first_posted['requests'].first['activerecord_loads'][k]['attributes'].length, 5
 			assert_equal first_posted['requests'].first['activerecord_loads'][k]['read_attributes'].first, 'value'
-			assert_equal first_posted['requests'].first['activerecord_loads'][k]['class'], "PeekerTest::UnkeyedTest"
+			assert_equal first_posted['requests'].first['activerecord_loads'][k]['class'], "UnkeyedTest"
 			assert_match /attribute_peeker.rb/, first_posted['requests'].first['activerecord_loads'][k]['location'].first
 		end
 		

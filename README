@@ -27,6 +27,8 @@ Known Issues
 - Heroku does not support git submodules.
 - Sleeper-Rails & other patches onto ActiveRecord connections can collide.
 - Lots of room for refactoring & optimization.
+- There is a known bug involving the peeker not peeking into already loaded classes.
+- - This has to do with ActiveRecord having already created the attribute read methods.
 
 TODO
 =====

@@ -1,23 +1,8 @@
-SLEEPER_DONT_BOOT = true
-
-require(File.dirname(__FILE__) + "/../../../../config/environment") unless defined?(Rails)
+SLEEPER_DONT_BOOT = true; require(File.dirname(__FILE__) + "/../../../../config/environment") unless defined?(Rails)
 
 require 'test_helper'
 
-module Net
-	class HTTP
-		def self.post_form(url, content)
-			$POSTED_DATA << content
-
-			Net::HTTPResponse.new("fake_http","200",'hooray!')
-		end
-	end
-end
-
 class ExplainerTest < Test::Unit::TestCase
-
-	class UnkeyedTest < ActiveRecord::Base;	end
-	class KeyedTest < ActiveRecord::Base;	end
 
 	context 'with explainer turned on' do
 		setup do
@@ -37,10 +22,6 @@ class ExplainerTest < Test::Unit::TestCase
 		end
 		
 		context 'an ActiveRecord store' do
-			setup do
-				
-			end
-		
 			context 'backed by MySQL' do
 				setup do 
 					mysql_connection = {
@@ -56,19 +37,12 @@ class ExplainerTest < Test::Unit::TestCase
 				end
 		
 				should 'explain an explainable query' do
-					env = {
-						'REQUEST_URI' => 'testing'
-					}
-					Sleeper.prepare_request(env)
+					prepare_sleeper_test!
 					
 					uk=UnkeyedTest.find_all_by_key('foobar')
 
-					$POSTED_DATA = []
-					
-					Sleeper.finish_request(env)
-					Sleeper.statistics.gather_host_data
-					Sleeper.statistics.upload!
-					
+					finish_sleeper_test!
+
 					assert_equal $POSTED_DATA.length, 1
 					first_request = ActiveSupport::JSON.decode($POSTED_DATA.first['data'])['requests'].first
 					
@@ -81,12 +55,7 @@ class ExplainerTest < Test::Unit::TestCase
 				end
 
 				should 'explain or log everything it can on full CRUD lifecycle' do
-					$POSTED_DATA = []
-					env = {
-						'REQUEST_URI' => 'testing'
-					}
-					
-					Sleeper.prepare_request(env)
+					prepare_sleeper_test!
 					
 					UnkeyedTest.delete_all
 					UnkeyedTest.create({
@@ -102,10 +71,8 @@ class ExplainerTest < Test::Unit::TestCase
 					assert_equal 'hahaha', v.value
 					v.destroy
 					
-					Sleeper.finish_request(env)
-					Sleeper.statistics.gather_host_data
-					Sleeper.statistics.upload!
-					
+					finish_sleeper_test!
+		
 					assert_equal $POSTED_DATA.length, 1
 					first_request = ActiveSupport::JSON.decode($POSTED_DATA.first['data'])['requests'].first
 					assert_equal 4, first_request['unexplained'].size

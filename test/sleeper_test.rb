@@ -1,17 +1,5 @@
 require 'test_helper'
 
-$POSTED_DATA = []
-
-module Net
-	class HTTP
-		def self.post_form(url, content)
-			$POSTED_DATA << content
-
-			Net::HTTPResponse.new("fake_http","200",'hooray!')
-		end
-	end
-end
-
 class SleeperTest < Test::Unit::TestCase
 
 	context 'sleeper configured to pull things off the internet' do
@@ -106,7 +94,7 @@ class SleeperTest < Test::Unit::TestCase
 				
 		should 'be configurable' do
 		end
-				
+						
 		teardown do
 			
 		end

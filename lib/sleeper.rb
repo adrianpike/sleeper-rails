@@ -65,6 +65,9 @@ module Sleeper
 		
 		log { 'Disabling profiler...' }
 		Profiler.disable!
+		
+		log { 'Disabling peeker...' }
+		AttributePeeker.disable!
 	end
 
 	def self.load_modules
